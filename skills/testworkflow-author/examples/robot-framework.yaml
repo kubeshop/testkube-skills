@@ -1,0 +1,55 @@
+# Example: Robot Framework Browser Tests
+# Patterns: robotframework, run with shell, xunit/JUnit output
+# What this demonstrates: Running Robot Framework tests with the Browser
+#                       library. The --xunit flag generates JUnit-compatible
+#                       XML that Testkube auto-parses. The --exclude flag
+#                       filters tests by tag.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: robot-framework
+  labels:
+    tool: robotframework
+    category: e2e-ui-testing
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/robotframework/robotframework-project
+
+  container:
+    # Official image from Robot Framework Browser project — includes
+    # Robot Framework, Browser library, and Playwright browsers
+    image: marketsquare/robotframework-browser:19.10
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 1000Mi
+    workingDir: /data/repo/test/robotframework/robotframework-project
+
+  steps:
+  - name: Run Robot Framework tests
+    run:
+      shell: |
+        mkdir -p /data/artifacts
+        # --outputdir: where to write output files
+        # --xunit: generate JUnit XML for Testkube auto-parsing
+        # --exclude: skip tests tagged "negative"
+        robot --outputdir /data/artifacts \
+          --xunit /data/artifacts/junit.xml \
+          --exclude negative \
+          tests/
+      env:
+      - name: ROBOT_SYSLOG_FILE
+        value: /data/artifacts/robot-syslog.txt
+
+  # Separate artifact step — ensures collection even if tests fail
+  - name: Save artifacts
+    condition: always
+    artifacts:
+      workingDir: /data/artifacts/
+      paths:
+      - '**/*'

@@ -1,0 +1,51 @@
+# Example: Step-Level Template Usage (use)
+# Patterns: use at step level, template defaults scoping
+# What this demonstrates: Using `use` at the step level to include
+#                       template defaults only for that step. Different
+#                       from top-level `use` which shares defaults
+#                       across the entire workflow.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: step-level-use
+  labels:
+    tool: k6
+    category: performance-testing
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/k6/k6-smoke-test.js
+
+  container:
+    resources:
+      requests:
+        cpu: 128m
+        memory: 128Mi
+    workingDir: /data/repo/test/k6
+
+  steps:
+  # Step-level `use`: the distribute/evenly template's defaults
+  # only apply to THIS step. Other steps in the workflow are
+  # unaffected. Contrast with top-level `use` which would share
+  # defaults globally.
+  - name: Run distributed
+    parallel:
+      count: 2
+      transfer:
+      - from: /data/repo
+      # use at step level: template defaults scoped to this step only
+      use:
+      - name: distribute/evenly
+      run:
+        image: grafana/k6:1.1.0
+        shell: |
+          k6 run k6-smoke-test.js \
+            --execution-segment {{ index }}/{{ count }}:{{ index + 1 }}/{{ count }}
+
+  # This step is NOT affected by distribute/evenly defaults
+  - name: Post-run summary
+    shell: echo "All workers completed at $(date)"

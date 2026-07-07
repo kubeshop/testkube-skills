@@ -1,0 +1,75 @@
+# Example: Pod Volumes for Browser Tests
+# Patterns: pod.volumes, volumeMounts, emptyDir, /dev/shm
+# What this demonstrates: Browser-based tests (Cypress, Playwright) need
+#                       /dev/shm sized appropriately. This shows how to
+#                       mount a custom-sized shared memory volume via
+#                       spec.pod.volumes and container.volumeMounts.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: pod-volumes
+  labels:
+    tool: cypress
+    category: e2e-ui-testing
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/cypress/cypress-14
+
+  container:
+    image: cypress/included:14.5.1
+    resources:
+      requests:
+        cpu: 1500m
+        memory: 2Gi
+    workingDir: /data/repo/test/cypress/cypress-14
+
+    # Mount /dev/shm from the emptyDir volume defined below.
+    # Browser tests need this for shared memory between processes.
+    volumeMounts:
+    - mountPath: /dev/shm
+      name: shm
+
+  # pod.volumes defines volumes available to the entire pod.
+  # emptyDir with Memory medium creates a tmpfs — faster than disk.
+  # sizeLimit prevents the volume from consuming all node memory.
+  pod:
+    volumes:
+    - name: shm
+      emptyDir:
+        medium: Memory
+        sizeLimit: 512Mi
+
+  steps:
+  - name: Verify /dev/shm size
+    shell: |
+      SHM_SIZE=$(df -m /dev/shm | awk 'NR==2 {print $2}')
+      if [ "$SHM_SIZE" -eq 512 ]; then
+        echo "✅ /dev/shm is 512Mi"
+      else
+        echo "❌ /dev/shm is not 512Mi (got ${SHM_SIZE}Mi)"
+        exit 1
+      fi
+
+  - name: Run Cypress tests
+    run:
+      shell: |
+        npx cypress run --env NON_CYPRESS_ENV=NON_CYPRESS_ENV_value \
+          --config '{"screenshotsFolder":"/data/artifacts/screenshots","videosFolder":"/data/artifacts/videos"}'
+      env:
+      - name: CYPRESS_CUSTOM_ENV
+        value: CYPRESS_CUSTOM_ENV_value
+      # Skip binary download: the official image already has Cypress installed
+      - name: CYPRESS_INSTALL_BINARY
+        value: "1"
+    steps:
+    - name: Save artifacts
+      condition: always
+      workingDir: /data/artifacts
+      artifacts:
+        paths:
+        - '**/*'

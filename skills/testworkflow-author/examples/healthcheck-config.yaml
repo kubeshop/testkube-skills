@@ -1,0 +1,65 @@
+# Example: Health Check with Secrets
+# Patterns: config, secrets via valueFrom.secretKeyRef, optional steps, expressions
+# What this demonstrates: A workflow that uses Kubernetes Secrets for credentials,
+#                       config for parameterization, and optional steps for
+#                       non-critical setup. Includes expression helpers.
+# NOTE: This example references secrets that must exist in the cluster
+#       (testkube-agent-secrets, my-api-token). --dry-run passes because
+#       secretKeyRef existence is checked at runtime, not at validation time.
+#       Replace secret names with your own before using.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: healthcheck-config
+  labels:
+    category: healthcheck
+spec:
+  # Pure steps can be merged into the same container for efficiency
+  system:
+    pureByDefault: true
+
+  config:
+    endpoint:
+      type: string
+      default: "https://api.example.com/health"
+      description: "Health check endpoint URL"
+
+  # Global timeout — workflow killed after 3 minutes regardless
+  job:
+    activeDeadlineSeconds: 180
+
+  container:
+    image: alpine:latest
+    resources:
+      requests:
+        cpu: 32m
+        memory: 32Mi
+    env:
+    # Reference a Kubernetes Secret for the API token.
+    # valueFrom.secretKeyRef is preferred over inline values — secrets
+    # never appear in the workflow YAML.
+    - name: API_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: my-api-token
+          key: token
+    - name: ORG_ID
+      valueFrom:
+        secretKeyRef:
+          name: testkube-agent-secrets
+          key: TESTKUBE-CLOUD-ORG-ID
+
+  steps:
+  # Optional step: failure here won't fail the whole workflow.
+  # Good for non-critical setup that may not always be available.
+  - name: Disable telemetry (optional)
+    optional: true
+    shell: echo "Telemetry disabled"
+
+  # $API_TOKEN is expanded directly by the shell — the secret
+  # value is injected as an env var via valueFrom.secretKeyRef above.
+  - name: Health check
+    shell: |
+      curl -f -H "Authorization: Bearer $API_TOKEN" \
+        {{ config.endpoint }}

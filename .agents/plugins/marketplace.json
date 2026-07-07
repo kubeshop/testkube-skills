@@ -1,0 +1,20 @@
+{
+  "name": "testkube-skills",
+  "interface": {
+    "displayName": "Testkube Skills"
+  },
+  "plugins": [
+    {
+      "name": "testkube-skills",
+      "source": {
+        "source": "local",
+        "path": "./plugins/testkube-skills"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "NONE"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

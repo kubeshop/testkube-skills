@@ -1,0 +1,41 @@
+# Example: Gradle Java Build
+# Patterns: gradle, JDK toolchain, --no-daemon, build tool image
+# What this demonstrates: Running Gradle tests with a JDK-specific image.
+#                       The --no-daemon flag is important for CI/CD —
+#                       Gradle daemon persists across steps and causes
+#                       issues in containerized environments.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: gradle-java
+  labels:
+    tool: gradle
+    category: build-integration
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/gradle/projects/hello-gradle
+
+  container:
+    # Pin a specific Gradle+JDK version for reproducible builds
+    image: gradle:8.5.0-jdk11
+    workingDir: /data/repo/test/gradle/projects/hello-gradle
+    resources:
+      requests:
+        cpu: 512m
+        memory: 512Mi
+
+  steps:
+  - name: Run Gradle tests
+    run:
+      # --no-daemon: critical for containers — the Gradle daemon doesn't
+      # shut down cleanly across init container boundaries and will leave
+      # orphaned processes. Always use --no-daemon in TestWorkflows.
+      shell: gradle --no-daemon test
+      env:
+      - name: TESTKUBE_GRADLE
+        value: "true"

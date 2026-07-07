@@ -1,0 +1,30 @@
+# Example: Workflow Suite (Execute Composition)
+# Patterns: execute composition, parallelism
+# What this demonstrates: Orchestrating multiple existing workflows as a suite.
+#                       The execute step runs other workflows by name.
+# NOTE: This example requires the referenced workflows (playwright-workflow-smoke
+#       etc.) to already exist in the cluster. --dry-run will fail without them.
+#       To make self-contained, replace with inline steps.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: e2e-suite
+  labels:
+    type: suite
+    category: e2e-ui-testing
+spec:
+  container:
+    resources:
+      requests:
+        cpu: 32m
+        memory: 32Mi
+
+  steps:
+  # Execute step: runs other Testkube resources by name.
+  # parallelism: 2 means up to 2 workflows run concurrently.
+  - execute:
+      parallelism: 2
+      workflows:
+      - name: playwright-workflow-smoke
+      - name: cypress-workflow-smoke

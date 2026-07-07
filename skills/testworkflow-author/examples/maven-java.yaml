@@ -1,0 +1,44 @@
+# Example: Maven Java Build
+# Patterns: maven, surefire reports, build tool image
+# What this demonstrates: Running Maven tests with a JDK-specific image.
+#                       Maven generates surefire XML reports that Testkube
+#                       can auto-parse as JUnit. Use the official Maven
+#                       Docker image for pre-installed tooling.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: maven-java
+  labels:
+    tool: maven
+    category: build-integration
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/maven/projects/hello-maven
+
+  container:
+    # Maven image with Eclipse Temurin JDK 11
+    image: maven:3.9.6-eclipse-temurin-11-focal
+    resources:
+      requests:
+        cpu: 256m
+        memory: 256Mi
+    workingDir: /data/repo/test/maven/projects/hello-maven
+
+  steps:
+  - name: Run Maven tests
+    run:
+      # mvn test runs the Maven test phase — compiles, runs tests,
+      # generates surefire XML reports in target/surefire-reports/
+      shell: mvn test
+      env:
+      - name: TESTKUBE_MAVEN
+        value: "true"
+    # Collect surefire XML reports — Testkube auto-parses them as JUnit
+    artifacts:
+      paths:
+      - target/surefire-reports/**

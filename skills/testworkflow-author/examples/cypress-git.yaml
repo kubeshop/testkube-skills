@@ -1,0 +1,49 @@
+# Example: Cypress E2E from Git
+# Patterns: git content, run with shell+env, artifacts
+# What this demonstrates: Running Cypress tests from a Git repository with
+#                       custom environment variables and artifact collection.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: cypress-git
+  labels:
+    tool: cypress
+    category: e2e-ui-testing
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/cypress/cypress-14
+
+  container:
+    # Official Cypress image — includes Cypress and all browser dependencies
+    image: cypress/included:14.5.1
+    resources:
+      requests:
+        cpu: 1500m
+        memory: 2Gi
+    workingDir: /data/repo/test/cypress/cypress-14
+
+  steps:
+  - name: Run Cypress tests
+    run:
+      # Use run.shell for full command control with environment variables
+      shell: |
+        npx cypress run \
+          --env NON_CYPRESS_ENV=NON_CYPRESS_ENV_value \
+          --config '{"screenshotsFolder":"/data/artifacts/screenshots","videosFolder":"/data/artifacts/videos"}'
+      env:
+      # Cypress automatically picks up CYPRESS_* environment variables
+      - name: CYPRESS_CUSTOM_ENV
+        value: CYPRESS_CUSTOM_ENV_value
+    steps:
+    # Sub-step always runs — artifacts saved even if test fails
+    - name: Saving artifacts
+      condition: always
+      workingDir: /data/artifacts
+      artifacts:
+        paths:
+        - '**/*'

@@ -1,0 +1,52 @@
+# Example: Inline Content with Per-Step Working Directory
+# Patterns: content.files, per-step workingDir, run with image
+# What this demonstrates: Using inline content files with a per-step
+#                       working directory override. The content file
+#                       is created at a specific path, and the step
+#                       uses `workingDir` to match where the file lives.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: content-file-mixed
+  labels:
+    tool: k6
+    category: performance-testing
+spec:
+  content:
+    files:
+    # File created at /data/k6-test.js — absolute path
+    - path: /data/k6-test.js
+      content: |-
+        import http from 'k6/http';
+        import { sleep } from 'k6';
+        export default function () {
+          http.get('https://testkube-test-page-lipsum.pages.dev');
+          sleep(1);
+        }
+
+  container:
+    resources:
+      requests:
+        cpu: 128m
+        memory: 128Mi
+
+  steps:
+  - name: Run test
+    # Step-level workingDir: override the global default.
+    # The content file lives at /data/k6-test.js, so we set
+    # workingDir to /data so `k6-test.js` resolves correctly.
+    workingDir: /data
+    run:
+      # Per-step image: use a specific K6 version for this step only
+      image: grafana/k6:1.1.0
+      env:
+      - name: K6_WEB_DASHBOARD
+        value: 'true'
+      - name: K6_WEB_DASHBOARD_EXPORT
+        value: k6-test-report.html
+      shell: k6 run k6-test.js --duration 30s --summary-export summary.json
+    artifacts:
+      paths:
+      - k6-test-report.html
+      - summary.json

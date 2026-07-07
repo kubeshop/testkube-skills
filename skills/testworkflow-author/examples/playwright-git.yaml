@@ -1,0 +1,60 @@
+# Example: Playwright E2E from Git
+# Patterns: git content, run with env, nested steps, artifacts
+# What this demonstrates: Cloning a Playwright project from Git, installing
+#                       dependencies, running tests, and collecting results.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: playwright-git
+  labels:
+    tool: playwright
+    category: e2e-ui-testing
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      # Sparse checkout: only fetch the Playwright test directory.
+      # This saves bandwidth and clone time for large repos.
+      paths:
+      - test/playwright/playwright-project
+
+  container:
+    # Use Microsoft's official Playwright image — includes browsers pre-installed
+    image: mcr.microsoft.com/playwright:v1.56.1
+    resources:
+      requests:
+        cpu: 1500m
+        memory: 1500Mi
+    # Set workingDir to the cloned repo path so relative paths work
+    workingDir: /data/repo/test/playwright/playwright-project
+
+  steps:
+  # Step 1: Install dependencies (separate step for clarity)
+  - name: Install dependencies
+    shell: npm ci
+
+  # Step 2: Run tests with reporting enabled
+  - name: Run Playwright tests
+    run:
+      # run.shell gives more control — explicit command with env vars
+      shell: |
+        mkdir /data/artifacts
+        npx playwright test --reporter=list,junit,html --trace on
+      env:
+      # Configure JUnit output location for Testkube to auto-parse the report
+      - name: PLAYWRIGHT_JUNIT_OUTPUT_NAME
+        value: "/data/artifacts/junit-report.xml"
+      # HTML report for visual inspection
+      - name: PLAYWRIGHT_HTML_REPORT
+        value: /data/artifacts/playwright-report
+    # Nested sub-step: always runs, even if tests fail.
+    # condition: always ensures artifacts are saved regardless of test outcome.
+    steps:
+    - name: Save artifacts
+      condition: always
+      workingDir: /data/artifacts/
+      artifacts:
+        paths:
+        - '**/*'

@@ -1,0 +1,37 @@
+# Example: Postman API Test from Git
+# Patterns: git content, shell, args
+# What this demonstrates: Running a Postman collection with Newman, the
+#                       Postman CLI runner, using a pre-built image.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: postman-git
+  labels:
+    tool: postman
+    category: api-testing
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/postman/postman-executor-smoke.postman_collection.json
+
+  container:
+    # Newman is Postman's command-line collection runner
+    image: postman/newman:6-alpine
+    resources:
+      requests:
+        cpu: 256m
+        memory: 128Mi
+    workingDir: /data/repo/test/postman
+
+  # activeDeadlineSeconds prevents stuck workflows from running forever
+  job:
+    activeDeadlineSeconds: 180
+
+  steps:
+  # Simple shell step — the container image already has newman installed
+  - name: Run Postman collection
+    shell: newman run postman-executor-smoke.postman_collection.json --env-var TESTKUBE_POSTMAN_PARAM=TESTKUBE_POSTMAN_PARAM_value

@@ -1,0 +1,88 @@
+# Example: Parallel Matrix with Browser Matrix
+# Patterns: parallel, matrix, transfer, fetch, expressions, per-step resources
+# What this demonstrates: Running the same test across multiple configurations
+#                       (matrix), sharing the repo to workers (transfer), and
+#                       collecting results from each worker (fetch).
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: parallel-matrix
+  labels:
+    tool: cypress
+    category: e2e-ui-testing
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/cypress/cypress-14
+
+  # Global defaults — all steps inherit these unless overridden
+  container:
+    image: cypress/included:14.5.1
+    workingDir: /data/repo/test/cypress/cypress-14
+    resources:
+      # Low requests at the workflow level — individual parallel steps
+      # override these with higher values for browser tests
+      requests:
+        cpu: 128m
+        memory: 128Mi
+
+  steps:
+  - name: Run tests across browsers
+    parallel:
+      # Matrix: generates one parallel worker per browser value.
+      # Each worker sees matrix.browser = one of the values below.
+      matrix:
+        browser: ['chrome', 'firefox']
+
+      # Description appears in logs and UI per worker
+      description: '{{ matrix.browser }} browser'
+
+      # TRANSFER: share files from the current step's container to all
+      # parallel workers before they start. Here, /data/repo (the git
+      # checkout) is transferred so each worker has the test code.
+      # Without transfer, each worker starts with an empty filesystem.
+      transfer:
+      - from: /data/repo
+
+      # FETCH: collect files from parallel workers after they complete.
+      # Each worker's /data/artifacts is copied into a browser-specific
+      # directory under the parent's /data/artifacts.
+      # Without fetch, artifacts from parallel workers are lost.
+      fetch:
+      - from: /data/artifacts
+        to: /data/artifacts/{{ matrix.browser }}
+
+      # Per-step container: override global defaults for browser tests.
+      # These higher resources apply only to the parallel workers, not
+      # to other steps in the workflow.
+      container:
+        resources:
+          requests:
+            cpu: 1500m
+            memory: 2Gi
+
+      run:
+        # {{ matrix.browser }} picks the browser for this worker
+        args:
+        - '--browser'
+        - '{{ matrix.browser }}'
+        - --env
+        - NON_CYPRESS_ENV=NON_CYPRESS_ENV_value
+        - --reporter
+        - junit
+        - --reporter-options
+        - mochaFile=/data/artifacts/junit/junit-[hash].xml,toConsole=false
+        env:
+        - name: CYPRESS_CUSTOM_ENV
+          value: CYPRESS_CUSTOM_ENV_value
+
+    # Artifacts at the parent step level — includes fetched results
+    # from all parallel workers, organized by browser
+    artifacts:
+      workingDir: /data/artifacts
+      paths:
+      - '**/*'

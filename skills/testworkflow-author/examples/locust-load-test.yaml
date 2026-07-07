@@ -1,0 +1,51 @@
+# Example: Locust Load Test
+# Patterns: locust, run with image, artifact collection
+# What this demonstrates: Running a Locust performance test with the
+#                       official Locust Docker image. Locust is a
+#                       Python-based load testing tool that generates
+#                       HTML reports.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: locust-load-test
+  labels:
+    tool: locust
+    category: performance-testing
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/locust/locust-project
+
+  container:
+    workingDir: /data/repo/test/locust/locust-project
+    resources:
+      requests:
+        cpu: 256m
+        memory: 128Mi
+
+  steps:
+  - name: Run Locust test
+    run:
+      # Use the official Locust image — pinned version for reproducibility
+      image: locustio/locust:2.32.3
+      shell: |
+        mkdir /data/artifacts
+        # --headless: run without web UI
+        # --users: number of simulated users
+        # --spawn-rate: users spawned per second
+        # --run-time: test duration
+        # --html: generate an HTML report
+        locust -f locust_test.py \
+          --host https://testkube-test-page-lipsum.pages.dev/ \
+          --headless \
+          --users 6 \
+          --spawn-rate 3 \
+          --run-time 10s \
+          --html=/data/artifacts/report.html
+    artifacts:
+      paths:
+      - /data/artifacts/**

@@ -1,0 +1,46 @@
+{
+  "name": "testkube-skills",
+  "version": "0.1.0",
+  "description": "Testkube skills for AI coding agents: install or reuse the Testkube CLI and a local OSS agent, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions.",
+  "author": {
+    "name": "Testkube",
+    "email": "support@testkube.io"
+  },
+  "homepage": "https://testkube.io",
+  "repository": "https://github.com/kubeshop/testkube-skills",
+  "license": "MIT",
+  "keywords": [
+    "testkube",
+    "cli",
+    "kubernetes",
+    "k3d",
+    "minikube",
+    "install",
+    "testing",
+    "testworkflow",
+    "yaml",
+    "e2e",
+    "load-testing",
+    "diagnose"
+  ],
+  "skills": "../../skills/",
+  "interface": {
+    "displayName": "Testkube Skills",
+    "shortDescription": "Install, author, run, and diagnose Testkube from your AI agent",
+    "longDescription": "Four skills for working with Testkube from an AI coding agent: install or reuse the Testkube CLI, set up a local Testkube OSS agent, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions. Setup skills check for an existing install first and reuse it, installing missing pieces only after confirming each step with the user.",
+    "developerName": "Testkube",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Execute"
+    ],
+    "websiteURL": "https://testkube.io",
+    "defaultPrompt": [
+      "Install the Testkube CLI if it isn't already present.",
+      "Set up a local Testkube OSS agent, reusing my current cluster if it already has one.",
+      "Author a Testkube TestWorkflow YAML for my test suite.",
+      "Run my TestWorkflow and diagnose any failures."
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+# Example: Cron-Triggered Workflow
+# Patterns: events, cronjob trigger, simple shell
+# What this demonstrates: A workflow that runs automatically on a schedule
+#                       using a CronJob trigger. The workflow itself is simple —
+#                       the trigger is the interesting pattern.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: cron-scheduled
+  labels:
+    category: scheduled
+spec:
+  # Events define automatic triggers.
+  # This cron expression means "at minute 0 of every hour" (hourly).
+  # Standard 5-field cron: minute hour day-of-month month day-of-week
+  events:
+  - cronjob:
+      cron: "0 * * * *"
+
+  container:
+    image: alpine:latest
+    resources:
+      requests:
+        cpu: 32m
+        memory: 32Mi
+
+  steps:
+  - name: Scheduled health check
+    shell: |
+      echo "Running scheduled health check at $(date)"
+      curl -f https://example.com/health || echo "Health check failed"

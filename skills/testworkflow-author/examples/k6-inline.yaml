@@ -1,0 +1,69 @@
+# Example: K6 Inline Performance Test
+# Patterns: inline content, shell, config, artifacts
+# What this demonstrates: A self-contained performance test with no external dependencies
+#                       — script is embedded, parameters are configurable, results are saved.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: k6-inline
+  labels:
+    tool: k6
+    category: performance-testing
+spec:
+  # Config makes parameters adjustable at runtime without editing the YAML.
+  # Override via CLI: testkube run testworkflow k6-inline --config VUS=20
+  config:
+    VUS:
+      type: integer
+      default: 5
+      description: "Number of virtual users"
+    targetUrl:
+      type: string
+      default: "https://test.k6.io"
+      description: "URL to test"
+
+  # Inline content: the test script lives in the workflow itself.
+  # Best for short scripts or when you don't have a Git repository.
+  content:
+    files:
+    - path: /data/test.js
+      # Use YAML block scalar (|) for multi-line content
+      content: |
+        import http from 'k6/http';
+        import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.2/index.js';
+
+        export const options = {
+          thresholds: { http_req_failed: ['rate<0.01'] },
+        };
+
+        export default function() {
+          http.get(__ENV.TARGET_URL);
+        }
+
+        export function handleSummary(data) {
+          return {
+            stdout: textSummary(data, { indent: ' ', enableColors: true }),
+            'summary.json': JSON.stringify(data),
+          };
+        }
+
+  # Global container defaults — all steps use this image unless overridden
+  container:
+    # Pin a specific version for reproducible runs
+    image: grafana/k6:0.49.0
+    resources:
+      requests:
+        cpu: 128m
+        memory: 128Mi
+    # Working directory relative to which content.files paths resolve
+    workingDir: /data
+
+  steps:
+  # Shell is the simplest step type — one command, default image
+  - name: Run k6 test
+    shell: k6 run -e TARGET_URL={{ config.targetUrl }} --vus {{ config.VUS }} test.js
+    # Collect the summary JSON and any other outputs
+    artifacts:
+      paths:
+      - summary.json

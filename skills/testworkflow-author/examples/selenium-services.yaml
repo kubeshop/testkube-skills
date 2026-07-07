@@ -1,0 +1,68 @@
+# Example: Selenium with Sidecar Service
+# Patterns: services (sidecars), readinessProbe, service IP references
+# What this demonstrates: Running Selenium tests with a companion Chrome browser
+#                       service. The service runs in its own container alongside
+#                       the test steps.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: selenium-services
+  labels:
+    tool: selenium
+    category: e2e-ui-testing
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/selenium/selenium-java
+
+  container:
+    # Maven image for building/running the Java Selenium project
+    image: maven:3.9.11-eclipse-temurin-17
+    workingDir: /data/repo/test/selenium/selenium-java
+    resources:
+      requests:
+        cpu: 1
+        memory: 512Mi
+
+  # Services run in separate containers alongside workflow steps.
+  # They start before steps and are torn down after.
+  services:
+    chrome:
+      # Standalone Chrome with WebDriver built in
+      image: selenium/standalone-chrome:112.0-chromedriver-112.0-grid-4.34.0-20250727
+      timeout: 120s
+      logs: always
+      resources:
+        requests:
+          cpu: 500m
+          memory: 512Mi
+      # readinessProbe ensures the service is ready before steps start.
+      # Steps wait at this gate — no manual sleep/timing needed.
+      readinessProbe:
+        httpGet:
+          path: /wd/hub/status
+          port: 4444
+        periodSeconds: 1
+
+  steps:
+  - name: Run Selenium tests
+    run:
+      env:
+      # Reference the Chrome service IP dynamically.
+      # {{ services.chrome.0.ip }} resolves to the actual pod IP at runtime.
+      - name: REMOTE_WEBDRIVER_URL
+        value: 'http://{{ services.chrome.0.ip }}:4444/wd/hub'
+      - name: BROWSER
+        value: 'chrome'
+      shell: |
+        mvn test
+        mvn surefire-report:report
+    # Collect Maven test reports
+    artifacts:
+      paths:
+      - target/site/**/*
+      - target/surefire-reports/**/*

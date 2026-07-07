@@ -1,0 +1,80 @@
+# Example: Distributed Artillery Load Test
+# Patterns: artillery, config-driven parallel, transfer, index/count
+# What this demonstrates: Running Artillery distributed across multiple
+#                       workers with configurable arrival rate per worker.
+#                       Similar to distributed K6 but uses Artillery's
+#                       specific CLI and image.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: artillery-distributed
+  labels:
+    tool: artillery
+    category: performance-testing
+spec:
+  config:
+    arrivalRatePerWorker:
+      type: integer
+      default: 2
+    duration:
+      type: string
+      default: '2s'
+    workers:
+      type: integer
+      default: 2
+
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/artillery/artillery-smoke-test.yaml
+
+  container:
+    resources:
+      requests:
+        cpu: 128m
+        memory: 256Mi
+
+  steps:
+  - name: Run distributed Artillery test
+    parallel:
+      # Dynamic worker count from config
+      count: 'config.workers'
+
+      # Share the test definition to all workers
+      transfer:
+      - from: /data/repo
+
+      # Distribute workload evenly across workers
+      use:
+      - name: distribute/evenly
+
+      # fetch: collect per-worker results back to the parent.
+      # Without this, the parent-level artifacts collector finds nothing.
+      fetch:
+      - from: /data/artifacts
+        to: /data/artifacts/{{ index }}
+
+      container:
+        resources:
+          requests:
+            cpu: 128m
+            memory: 256Mi
+
+      run:
+        # Artillery image — uses /home/node/artillery/bin/run entrypoint
+        image: artilleryio/artillery:2.0.23
+        workingDir: /data/repo/test/artillery
+        shell: |
+          mkdir -p /data/artifacts/{{ index }}
+          /home/node/artillery/bin/run run artillery-smoke-test.yaml \
+            --overrides '{"config":{"phases":[{"arrivalRate":{{ config.arrivalRatePerWorker }},"duration":"{{ config.duration }}"}]}}' \
+            -o /data/artifacts/{{ index }}/artillery-report.json
+
+  # artifacts at parent level: collect per-worker results
+  artifacts:
+    workingDir: /data/artifacts
+    paths:
+    - '**/*'

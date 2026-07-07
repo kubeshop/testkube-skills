@@ -1,0 +1,50 @@
+# Example: Command/Args Pattern (Non-Shell Entrypoint)
+# Patterns: command, args, entrypoint-based images
+# What this demonstrates: Some container images are designed to be used
+#                       with command/args (entrypoint-based) rather than
+#                       shell. This shows both approaches side by side.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: command-args
+  labels:
+    tool: postman
+    category: api-testing
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/postman/postman-executor-smoke.postman_collection.json
+
+  container:
+    resources:
+      requests:
+        cpu: 256m
+        memory: 128Mi
+    workingDir: /data/repo/test/postman
+
+  steps:
+  # Approach 1: shell — simplest, wraps everything in sh -c.
+  # Use when the image has a default entrypoint and you just need
+  # to pass arguments to it.
+  - name: Run with shell
+    run:
+      image: postman/newman:6-alpine
+      shell: newman run postman-executor-smoke.postman_collection.json --env-var TESTKUBE_POSTMAN_PARAM=TESTKUBE_POSTMAN_PARAM_value
+
+  # Approach 2: args — directly passes arguments to the image's
+  # ENTRYPOINT without a shell wrapper. Use when the image's
+  # entrypoint is the command itself (e.g., newman, k6, artillery).
+  # This is more efficient (no sh -c overhead) and avoids shell
+  # escaping issues.
+  - name: Run with args
+    run:
+      image: postman/newman:6-alpine
+      args:
+      - run
+      - postman-executor-smoke.postman_collection.json
+      - --env-var
+      - TESTKUBE_POSTMAN_PARAM=TESTKUBE_POSTMAN_PARAM_value

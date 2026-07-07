@@ -1,0 +1,50 @@
+# Example: JMeter with Template
+# Patterns: template usage, artifacts
+# What this demonstrates: Using a TestWorkflowTemplate (official/jmeter) to
+#                       run a JMeter test with minimal configuration.
+# NOTE: This example requires the `official/jmeter/v2` template to exist in
+#       the cluster. --dry-run may fail without it. To make self-contained,
+#       replace the template step with a `run` step specifying the image.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: jmeter-template
+  labels:
+    tool: jmeter
+    category: performance-testing
+spec:
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      # Only fetch the JMeter test plan file
+      paths:
+      - test/jmeter/jmeter-executor-smoke.jmx
+
+  container:
+    resources:
+      requests:
+        cpu: 512m
+        memory: 512Mi
+    workingDir: /data/repo/test/jmeter
+
+  steps:
+  # Template step: reuses the official/jmeter/v2 template.
+  # Templates encapsulate common patterns — image, setup, artifact handling.
+  # The config block passes parameters to the template.
+  - name: Run JMeter from template
+    template:
+      name: official/jmeter/v2
+      config:
+        run: |
+          mkdir -p /data/artifacts
+          jmeter -n -t jmeter-executor-smoke.jmx \
+            -j /data/artifacts/jmeter.log \
+            -o /data/artifacts/report \
+            -l /data/artifacts/jtl-report.jtl \
+            -e
+    # Artifacts at step level — collected regardless of template handling
+    artifacts:
+      paths:
+      - /data/artifacts/**

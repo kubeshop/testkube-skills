@@ -1,0 +1,81 @@
+# Example: Distributed K6 with Execution Segments
+# Patterns: distribute/evenly, paused, index/count, config-driven parallel.count, shellquote
+# What this demonstrates: A production distributed load test where config
+#                       drives the number of workers, a built-in template
+#                       distributes work evenly, and execution segments
+#                       split the test across workers.
+
+apiVersion: testworkflows.testkube.io/v1
+kind: TestWorkflow
+metadata:
+  name: distributed-k6
+  labels:
+    tool: k6
+    category: performance-testing
+spec:
+  # Config drives the number of parallel workers dynamically
+  config:
+    vus:
+      type: integer
+      default: 2
+    duration:
+      type: string
+      default: '2s'
+    workers:
+      type: integer
+      default: 2
+
+  content:
+    git:
+      uri: https://github.com/kubeshop/testkube
+      revision: main
+      paths:
+      - test/k6/k6-smoke-test.js
+
+  container:
+    resources:
+      requests:
+        cpu: 128m
+        memory: 128Mi
+
+  steps:
+  - name: Run distributed test
+    parallel:
+      # Dynamic count from config — scales workers without editing YAML
+      count: 'config.workers'
+
+      # transfer: share the git checkout to all workers before they start.
+      # Without this, each worker starts with an empty filesystem.
+      transfer:
+      - from: /data/repo
+
+      # distribute/evenly: built-in template that splits workload across
+      # workers using index/count. Essential for distributed testing.
+      use:
+      - name: distribute/evenly
+
+      # paused: synchronize all workers to start at the same time.
+      # Useful for coordinated load testing.
+      paused: true
+
+      container:
+        resources:
+          requests:
+            cpu: 128m
+            memory: 128Mi
+
+      run:
+        image: grafana/k6:1.1.0
+        workingDir: /data/repo/test/k6
+        # {{ index }} and {{ count }} are built-in variables in parallel
+        # steps. The execution-segment splits the test: worker 0 runs
+        # segment 0/2 to 1/2, worker 1 runs 1/2 to 2/2, etc.
+        shell: |
+          k6 run k6-smoke-test.js \
+            -e K6_ENV_FROM_PARAM=K6_ENV_FROM_PARAM_value \
+            --vus {{ shellquote(config.vus) }} \
+            --duration {{ shellquote(config.duration) }} \
+            --execution-segment {{ index }}/{{ count }}:{{ index + 1 }}/{{ count }}
+        env:
+        - name: K6_SYSTEM_ENV
+          value: K6_SYSTEM_ENV_value
