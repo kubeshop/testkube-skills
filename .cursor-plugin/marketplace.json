@@ -12,7 +12,7 @@
     {
       "name": "testkube-skills",
       "source": "./plugins/testkube-skills",
-      "description": "Testkube skills for AI coding agents: install or reuse the Testkube CLI and a local OSS agent, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions."
+      "description": "Testkube skills for AI coding agents: install or reuse the Testkube CLI and a local OSS agent, discover tests in a repository, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions."
     }
   ]
 }

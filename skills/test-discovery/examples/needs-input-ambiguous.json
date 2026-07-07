@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "status": "needs_input",
+  "reason": "ambiguous_test_framework",
+  "message": "scripts.test is a compound command with references to unknown sub-scripts. Please tell me which sub-scripts are actual tests.",
+  "context": {
+    "language": "typescript",
+    "workingDir": "/data/repo/apps/web",
+    "manifest": "/data/repo/apps/web/package.json",
+    "script": "npm run build && npm run test:unit && npm run test:integration && npm run lint",
+    "unknownSubscripts": ["test:unit", "test:integration"],
+    "candidates": ["jest", "vitest", "mocha"]
+  }
+}

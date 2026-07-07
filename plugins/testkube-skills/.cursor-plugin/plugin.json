@@ -2,7 +2,7 @@
   "name": "testkube-skills",
   "displayName": "Testkube Skills",
   "version": "0.1.0",
-  "description": "Testkube skills for AI coding agents: install or reuse the Testkube CLI and a local OSS agent, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions.",
+  "description": "Testkube skills for AI coding agents: install or reuse the Testkube CLI and a local OSS agent, discover tests in a repository, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions.",
   "author": {
     "name": "Testkube",
     "email": "support@testkube.io"
@@ -18,6 +18,7 @@
     "minikube",
     "install",
     "testing",
+    "discovery",
     "testworkflow",
     "yaml",
     "e2e",

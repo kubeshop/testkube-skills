@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "status": "success",
+  "repository": {
+    "path": "/data/repo",
+    "revision": "d7690c07425c2a5fb785035454fcf7949709e9f9"
+  },
+  "discovery": {
+    "startedAt": "2026-07-01T13:00:00Z",
+    "finishedAt": "2026-07-01T13:00:04Z",
+    "agent": "pi/0.79.6",
+    "skill": "test-discovery/0.1.0"
+  },
+  "suites": [
+    {
+      "name": "playwright-e2e",
+      "framework": "playwright",
+      "language": "typescript",
+      "workingDir": "/data/repo",
+      "configFile": "/data/repo/playwright.config.ts",
+      "testFiles": [
+        "/data/repo/tests/login.spec.ts",
+        "/data/repo/tests/checkout.spec.ts",
+        "/data/repo/tests/profile.spec.ts"
+      ],
+      "testFilesCount": 3,
+      "testCommand": "npx playwright test",
+      "installCommand": "npm ci",
+      "version": "1.49.0",
+      "versionSource": "lock",
+      "suggestedImage": "mcr.microsoft.com/playwright:v1.49.0-noble",
+      "templateHint": "official/playwright/v1",
+      "envVars": ["BASE_URL", "CI", "PLAYWRIGHT_JUNIT_OUTPUT_NAME"],
+      "artifactsHint": ["playwright-report/**", "test-results/**"],
+      "confidence": 0.95,
+      "evidence": [
+        "playwright.config.ts present at repo root",
+        "@playwright/test@1.49.0 in package-lock.json",
+        "3 files matching tests/**/*.spec.ts",
+        "package-lock.json present, version pinned"
+      ]
+    }
+  ],
+  "warnings": []
+}

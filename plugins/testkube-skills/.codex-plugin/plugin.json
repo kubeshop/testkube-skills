@@ -1,7 +1,7 @@
 {
   "name": "testkube-skills",
   "version": "0.1.0",
-  "description": "Testkube skills for AI coding agents: install or reuse the Testkube CLI and a local OSS agent, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions.",
+  "description": "Testkube skills for AI coding agents: install or reuse the Testkube CLI and a local OSS agent, discover tests in a repository, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions.",
   "author": {
     "name": "Testkube",
     "email": "support@testkube.io"
@@ -17,6 +17,7 @@
     "minikube",
     "install",
     "testing",
+    "discovery",
     "testworkflow",
     "yaml",
     "e2e",
@@ -26,8 +27,8 @@
   "skills": "../../skills/",
   "interface": {
     "displayName": "Testkube Skills",
-    "shortDescription": "Install, author, run, and diagnose Testkube from your AI agent",
-    "longDescription": "Four skills for working with Testkube from an AI coding agent: install or reuse the Testkube CLI, set up a local Testkube OSS agent, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions. Setup skills check for an existing install first and reuse it, installing missing pieces only after confirming each step with the user.",
+    "shortDescription": "Install, discover, author, run, and diagnose Testkube from your AI agent",
+    "longDescription": "Five skills for working with Testkube from an AI coding agent: install or reuse the Testkube CLI, set up a local Testkube OSS agent, discover the tests in a cloned repository, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions. Setup skills check for an existing install first and reuse it, installing missing pieces only after confirming each step with the user.",
     "developerName": "Testkube",
     "category": "Productivity",
     "capabilities": [
@@ -39,6 +40,7 @@
     "defaultPrompt": [
       "Install the Testkube CLI if it isn't already present.",
       "Set up a local Testkube OSS agent, reusing my current cluster if it already has one.",
+      "Discover the tests in this repository and tell me what framework runs them.",
       "Author a Testkube TestWorkflow YAML for my test suite.",
       "Run my TestWorkflow and diagnose any failures."
     ]

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "status": "success",
+  "repository": {
+    "path": "/data/repo",
+    "revision": null
+  },
+  "discovery": {
+    "startedAt": "2026-07-01T13:00:00Z",
+    "finishedAt": "2026-07-01T13:00:02Z",
+    "agent": "pi/0.79.6",
+    "skill": "test-discovery/0.1.0"
+  },
+  "suites": [
+    {
+      "name": "k6-load",
+      "framework": "k6",
+      "language": "javascript",
+      "workingDir": "/data/repo",
+      "configFile": null,
+      "testFiles": ["/data/repo/script.js"],
+      "testFilesCount": 1,
+      "testCommand": "k6 run /data/repo/script.js",
+      "installCommand": null,
+      "version": null,
+      "versionSource": "not_found",
+      "suggestedImage": "grafana/k6:0.49.0",
+      "templateHint": "official/k6/v1",
+      "envVars": ["TARGET", "VUS"],
+      "artifactsHint": [],
+      "confidence": 0.65,
+      "evidence": [
+        "script.js contains 'import http from \"k6/http\"' in first 10 lines",
+        "no package.json in repo",
+        "script.js lives at repo root, not in a perf/load/benchmarks dir; base content-sniff confidence"
+      ]
+    }
+  ],
+  "warnings": []
+}
