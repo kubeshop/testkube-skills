@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://testkube.io/schemas/testworkflow-author/json-mode-output.schema.json",
+  "title": "testworkflow-author JSON output envelope",
+  "description": "Optional structured output for the testworkflow-author skill. Only emitted when the caller opts into JSON output; the default (write a YAML file + prose summary) is unaffected. The workflow.yaml string is byte-for-byte the YAML the default mode writes to disk.",
+  "type": "object",
+  "required": ["schemaVersion", "status"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "status": { "enum": ["success", "needs_input", "error"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "success" } } },
+      "then": {
+        "required": ["schemaVersion", "status", "workflow", "validation"],
+        "additionalProperties": false,
+        "properties": {
+          "schemaVersion": { "const": 1 },
+          "status": { "const": "success" },
+          "workflow": {
+            "type": "object",
+            "required": ["filename", "yaml"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string", "description": "metadata.name of the generated workflow." },
+              "filename": { "type": "string", "description": "Filename the YAML is/would be written to (default testworkflow.yaml)." },
+              "yaml": { "type": "string", "description": "Complete TestWorkflow YAML as a string — identical to what default mode writes to disk." }
+            }
+          },
+          "validation": {
+            "type": "object",
+            "required": ["method", "passed", "errors"],
+            "additionalProperties": false,
+            "properties": {
+              "method": { "enum": ["dry-run", "skipped"], "description": "dry-run when the testkube CLI was available; skipped otherwise (say why in notes)." },
+              "passed": { "type": "boolean" },
+              "errors": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "notes": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "needs_input" } } },
+      "then": {
+        "required": ["schemaVersion", "status", "reason", "message"],
+        "additionalProperties": false,
+        "properties": {
+          "schemaVersion": { "const": 1 },
+          "status": { "const": "needs_input" },
+          "reason": { "type": "string", "description": "Short tag for what is missing, e.g. credential_name, ambiguous_framework." },
+          "message": { "type": "string", "description": "One human-readable sentence." },
+          "context": { "type": "object", "additionalProperties": true }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "error" } } },
+      "then": {
+        "required": ["schemaVersion", "status", "code", "message"],
+        "additionalProperties": false,
+        "properties": {
+          "schemaVersion": { "const": 1 },
+          "status": { "const": "error" },
+          "code": { "type": "string", "description": "Short tag, e.g. invalid_request, schema_validation_failed." },
+          "message": { "type": "string", "description": "One human-readable sentence." }
+        }
+      }
+    }
+  ]
+}

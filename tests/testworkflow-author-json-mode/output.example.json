@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "status": "success",
+  "workflow": {
+    "name": "playwright-git",
+    "filename": "testworkflow.yaml",
+    "yaml": "apiVersion: testworkflows.testkube.io/v1\nkind: TestWorkflow\nmetadata:\n  name: playwright-git\n  labels:\n    tool: playwright\n    category: e2e-ui-testing\nspec:\n  content:\n    git:\n      uri: https://github.com/kubeshop/testkube\n      revision: main\n      paths:\n      - test/playwright/playwright-project\n  container:\n    image: mcr.microsoft.com/playwright:v1.56.1\n    resources:\n      requests:\n        cpu: 1500m\n        memory: 1500Mi\n    workingDir: /data/repo/test/playwright/playwright-project\n  steps:\n  - name: Install dependencies\n    shell: npm ci\n  - name: Run Playwright tests\n    run:\n      shell: |\n        mkdir /data/artifacts\n        npx playwright test --reporter=list,junit,html --trace on\n      env:\n      - name: PLAYWRIGHT_JUNIT_OUTPUT_NAME\n        value: \"/data/artifacts/junit-report.xml\"\n      - name: PLAYWRIGHT_HTML_REPORT\n        value: /data/artifacts/playwright-report\n    steps:\n    - name: Save artifacts\n      condition: always\n      workingDir: /data/artifacts/\n      artifacts:\n        paths:\n        - '**/*'\n"
+  },
+  "validation": {
+    "method": "dry-run",
+    "passed": true,
+    "errors": []
+  },
+  "notes": []
+}

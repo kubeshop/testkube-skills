@@ -1,0 +1,23 @@
+{
+  "workflowName": "playwright-git",
+  "framework": "playwright",
+  "language": "typescript",
+  "workingDir": "/data/repo/test/playwright/playwright-project",
+  "content": {
+    "git": {
+      "uri": "https://github.com/kubeshop/testkube",
+      "revision": "main"
+    }
+  },
+  "image": "mcr.microsoft.com/playwright:v1.56.1",
+  "installCommand": "npm ci",
+  "testCommand": "npx playwright test --reporter=list,junit,html",
+  "envVars": [
+    "PLAYWRIGHT_JUNIT_OUTPUT_NAME",
+    "PLAYWRIGHT_HTML_REPORT"
+  ],
+  "artifacts": [
+    "**/*"
+  ],
+  "config": {}
+}

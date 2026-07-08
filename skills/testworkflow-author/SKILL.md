@@ -3,8 +3,10 @@ name: testworkflow-author
 description: >
   Create and validate Testkube TestWorkflow YAML files. Use when writing test workflow YAML, choosing step types, or
   when the user asks to create a Testkube TestWorkflow. Covers shell steps, container run steps, execute composition,
-  templates, services, artifacts, config parameters, and cron triggers. Does NOT run workflows — that is the
-  testworkflow-runner skill's responsibility.
+  templates, services, artifacts, config parameters, and cron triggers. By default it takes free-form requirements
+  and writes a YAML file; it can OPTIONALLY take a structured JSON authoring request and/or emit the finished
+  workflow as JSON for programmatic callers, without changing the default behavior. Does NOT run workflows — that is
+  the testworkflow-runner skill's responsibility.
 metadata:
   initiative: test-authoring
 ---
@@ -17,6 +19,94 @@ NOT run the workflow or analyze execution results — the `testworkflow-runner` 
 Write files in the current working directory. Default to the filename `testworkflow.yaml` unless a different path is
 specified. Do not invent credentials, secrets, tokens, or private URLs — if you need them, describe what you need in
 your final message (see Credentials below).
+
+## Input and output: default behavior vs. optional JSON mode
+
+**Default (UNCHANGED — this is what you do unless the invocation explicitly opts in below).**
+Requirements arrive as free-form natural language. You write the workflow to a YAML file in the current
+working directory (default filename `testworkflow.yaml`), validate it, and describe the result in your
+final message. Nothing about this behavior changes. If you are unsure which mode you are in, you are in
+this one — it is the correct default.
+
+**Optional JSON mode (opt-in only).** Some callers are programs, not people. When — and only when — the
+invocation explicitly opts in, you may take a structured JSON authoring request as input, emit the
+finished workflow as a structured JSON envelope as output, or both. The two directions are independent;
+either can be requested without the other.
+
+Opt-in signals:
+- **JSON input**: the invocation supplies a JSON object (an authoring request) as its payload, or a path
+  to a `.json` request file. Read requirements from it instead of from prose.
+- **JSON output**: the invocation contains a phrase like "output as JSON", "respond with JSON",
+  "format: json", or gives an output path ending in `.json`. Emit the JSON envelope below to stdout
+  instead of prose.
+
+**What does NOT change in JSON mode.** The entire Core Loop and every Rule still apply — read lock files,
+match image versions, install dependencies in a separate step, validate with `--dry-run`. The YAML you
+produce in JSON mode is byte-for-byte the YAML you would have written to disk in default mode. JSON mode
+only changes how requirements come in and how the finished workflow is handed back; it is a thin wrapper
+around the exact same authoring, never a different authoring. When no opt-in signal is present, ignore
+this section entirely.
+
+### JSON input schema (authoring request)
+
+When JSON input is provided, it has the shape below. Only `framework` (or an explicit `testCommand`) is
+required; every other field is optional and, when absent, falls back to the same inference you do today
+(read lock files, pick the framework's default command and image). This shape is intentionally compatible
+with a `suites[]` entry from the `test-discovery` skill, so that skill's output can be piped straight in.
+
+```json
+{
+  "workflowName": "playwright-e2e",
+  "framework": "playwright",
+  "language": "typescript",
+  "workingDir": "/data/repo",
+  "content": { "git": { "uri": "https://github.com/acme/app", "revision": "main" } },
+  "image": "mcr.microsoft.com/playwright:v1.49.0-noble",
+  "installCommand": "npm ci",
+  "testCommand": "npx playwright test",
+  "envVars": ["BASE_URL", "TEST_USER"],
+  "artifacts": ["playwright-report/**", "test-results/**"],
+  "config": {}
+}
+```
+
+If required information is missing and cannot be inferred, emit the `needs_input` envelope rather than
+guessing (same discipline as the Credentials rule). Full field list: `assets/json-mode-input.schema.json`.
+
+### JSON output envelope
+
+When JSON output is requested, emit exactly one JSON document to stdout — no prose, no code fences; it
+starts with `{` and ends with `}`:
+
+```json
+{
+  "schemaVersion": 1,
+  "status": "success",
+  "workflow": {
+    "name": "playwright-e2e",
+    "filename": "testworkflow.yaml",
+    "yaml": "apiVersion: testworkflows.testkube.io/v1\nkind: TestWorkflow\nmetadata:\n  name: playwright-e2e\nspec:\n  ..."
+  },
+  "validation": { "method": "dry-run", "passed": true, "errors": [] },
+  "notes": []
+}
+```
+
+- `workflow.yaml` is the complete workflow as a string — identical to the file the default mode writes.
+- If a target file path was also given, still write the YAML file; stdout only mirrors it inside the envelope.
+- `validation.method` is `"dry-run"` when the `testkube` CLI was available, else `"skipped"` (say why in `notes`).
+
+Alternate statuses (same JSON discipline — never guess, report instead):
+
+```json
+{ "schemaVersion": 1, "status": "needs_input", "reason": "<short tag>", "message": "<one sentence>", "context": {} }
+```
+
+```json
+{ "schemaVersion": 1, "status": "error", "code": "<short tag>", "message": "<one sentence>" }
+```
+
+Full envelope schema: `assets/json-mode-output.schema.json`. Contract tests: `tests/testworkflow-author-json-mode/`.
 
 ## The Core Loop
 
@@ -233,6 +323,8 @@ Load these files on demand — when the task calls for them.
 | -------------------------------- | --------------------------------------------------------- | --------- |
 | `assets/workflow-schema.yaml`    | When needing every available field and description        | Available |
 | `assets/template-schema.yaml`    | When authoring TestWorkflowTemplates                      | Available |
+| `assets/json-mode-input.schema.json`  | When taking a JSON authoring request (optional JSON mode) | Available |
+| `assets/json-mode-output.schema.json` | When emitting the JSON output envelope (optional JSON mode)| Available |
 | `references/schema.md`           | When writing or editing any YAML field                    | Available |
 | `references/cli-reference.md`    | When needing CLI flags for create/dry-run                 | Available |
 | `references/step-patterns.md`    | When choosing between step types or seeking YAML snippets | Available |

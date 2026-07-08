@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://testkube.io/schemas/testworkflow-author/json-mode-input.schema.json",
+  "title": "testworkflow-author JSON authoring request",
+  "description": "Optional structured input for the testworkflow-author skill. Only used when the caller opts into JSON input; the default free-form-prose input is unaffected. Field shape is compatible with a test-discovery suites[] entry so that skill's output can be piped in.",
+  "type": "object",
+  "required": ["framework"],
+  "additionalProperties": false,
+  "properties": {
+    "workflowName": {
+      "type": "string",
+      "description": "metadata.name for the generated TestWorkflow. If omitted, derive one from framework + workingDir."
+    },
+    "framework": {
+      "type": "string",
+      "description": "Test framework/runner, e.g. playwright, cypress, jest, vitest, k6, go-test, go-testify, pytest, maven-surefire, gradle-test, postman, jmeter, artillery."
+    },
+    "language": {
+      "type": "string",
+      "description": "Primary language of the tests (informational; used to pick default image when image is absent)."
+    },
+    "workingDir": {
+      "type": "string",
+      "description": "Directory where the test code lives; maps to spec.container.workingDir."
+    },
+    "content": {
+      "type": "object",
+      "description": "Where test code comes from; maps to spec.content. Either git or files.",
+      "additionalProperties": true
+    },
+    "image": {
+      "type": "string",
+      "description": "Container image for steps. If omitted, resolve from the framework + lock-file version per the skill Rules."
+    },
+    "installCommand": {
+      "type": ["string", "null"],
+      "description": "Dependency install command run in its own step (e.g. npm ci). Null when the framework needs none."
+    },
+    "testCommand": {
+      "type": ["string", "null"],
+      "description": "Command that runs the tests. If omitted, use the framework's canonical default (never invent one)."
+    },
+    "envVars": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Env var NAMES the tests reference (no values). Values, if secret, are handled via credential()/secretKeyRef."
+    },
+    "artifacts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Glob paths to collect as artifacts; maps to an artifacts step with condition: always."
+    },
+    "config": {
+      "type": "object",
+      "description": "Parameterized inputs; maps to spec.config.",
+      "additionalProperties": true
+    }
+  }
+}
