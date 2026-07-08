@@ -103,6 +103,48 @@ grep -q 'byte-for-byte the YAML you would have written to disk' "$SKILL_MD" \
   && ok "SKILL.md guarantees identical YAML across modes" \
   || bad "SKILL.md missing the identical-YAML guarantee"
 
+echo "== 5. Composition scenario: 4 discovered suites -> one orchestrator =="
+DISCO_SCHEMA="$(cd "$HERE/../.." && pwd)/skills/test-discovery/assets/manifest-schema.json"
+# 5a. The input really is valid test-discovery output (proves the pipe is real).
+#     Uses the test-discovery schema via jsonschema when available; otherwise a
+#     discovery-shaped structural check (the generic validate() fallback is
+#     envelope-specific and would not fit a discovery manifest).
+if python3 - "$DISCO_SCHEMA" "$HERE/compose.discovery-input.json" <<'PY'
+import json, sys, os
+schema_path, inst_path = sys.argv[1], sys.argv[2]
+inst = json.load(open(inst_path))
+if os.path.isfile(schema_path):
+    try:
+        import jsonschema
+        jsonschema.validate(inst, json.load(open(schema_path)))
+        sys.exit(0)
+    except ModuleNotFoundError:
+        pass
+assert inst.get("status") == "success", "discovery status is not success"
+assert isinstance(inst.get("suites"), list) and inst["suites"], "no suites in discovery manifest"
+PY
+then ok "compose.discovery-input.json is valid test-discovery output"; else bad "compose.discovery-input.json is not valid test-discovery output"; fi
+# 5b. The composed envelope validates against the author output schema.
+if validate "$OUT_SCHEMA" "$HERE/compose.output.example.json" >/dev/null 2>&1; then
+  ok "compose.output.example.json vs output schema"
+else
+  bad "compose.output.example.json vs output schema"
+fi
+# 5c. The orchestrator YAML composes all 4 suites via execute + config-gated conditions.
+if python3 - "$HERE/compose.discovery-input.json" "$HERE/compose.output.example.json" <<'PY'
+import json, sys, re
+disco = json.load(open(sys.argv[1]))
+env = json.load(open(sys.argv[2]))
+n = len(disco["suites"])
+y = env["workflow"]["yaml"]
+assert y.startswith("apiVersion: testworkflows.testkube.io/"), "wrong apiVersion"
+assert "kind: TestWorkflow" in y, "not a TestWorkflow"
+assert y.count("execute:") == n, f"expected {n} execute steps, got {y.count('execute:')}"
+assert y.count("condition: config.") == n, f"expected {n} config-gated conditions, got {y.count('condition: config.')}"
+assert re.search(r"config:\s*\n\s+run", y), "no spec.config toggles found"
+PY
+then ok "orchestrator composes all $(python3 -c "import json;print(len(json.load(open('$HERE/compose.discovery-input.json'))['suites']))") suites via execute + config conditions"; else bad "orchestrator composition structure is wrong"; fi
+
 echo
 echo "== summary: $pass passed, $fail failed =="
 [ "$fail" -eq 0 ]

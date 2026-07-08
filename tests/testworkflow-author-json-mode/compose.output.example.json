@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "status": "success",
+  "workflow": {
+    "name": "release-suite",
+    "filename": "release-suite.yaml",
+    "yaml": "apiVersion: testworkflows.testkube.io/v1\nkind: TestWorkflow\nmetadata:\n  name: release-suite\n  labels:\n    type: suite\nspec:\n  config:\n    runGo:\n      type: boolean\n      default: true\n    runPlaywright:\n      type: boolean\n      default: true\n    runCypress:\n      type: boolean\n      default: true\n    runK6:\n      type: boolean\n      default: false\n  container:\n    resources:\n      requests:\n        cpu: 32m\n        memory: 32Mi\n  steps:\n  - name: Go unit\n    condition: config.runGo\n    execute:\n      workflows:\n      - name: go-unit\n  - name: Playwright\n    condition: config.runPlaywright\n    execute:\n      workflows:\n      - name: playwright-smoke\n  - name: Cypress\n    condition: config.runCypress\n    execute:\n      workflows:\n      - name: cypress-smoke\n  - name: K6 load\n    condition: config.runK6\n    execute:\n      workflows:\n      - name: k6-load\n        config:\n          # optional: pass params to the child\n          vus: 10\n          duration: 30s\n"
+  },
+  "validation": {
+    "method": "skipped",
+    "passed": true,
+    "errors": []
+  },
+  "notes": [
+    "Composed 4 discovered suites into one orchestrator via execute.workflows.",
+    "Each suite gated by a boolean spec.config toggle + condition; runK6 defaults false (load test opt-in).",
+    "Child workflows (go-unit, playwright-smoke, cypress-smoke, k6-load) are referenced by name and must exist; --dry-run marked skipped (no reachable context)."
+  ]
+}
