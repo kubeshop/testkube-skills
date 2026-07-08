@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "status": "no_tests_found",
+  "repository": {
+    "path": "/data/repo",
+    "revision": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4"
+  },
+  "discovery": {
+    "startedAt": "2026-07-01T13:00:00Z",
+    "finishedAt": "2026-07-01T13:00:01Z",
+    "agent": "pi/0.79.6",
+    "skill": "test-discovery/0.1.0"
+  },
+  "checked": {
+    "totalFiles": 12,
+    "languagesDetected": ["typescript"],
+    "reasons": [
+      "package.json present but no test framework in dependencies or devDependencies",
+      "no *.test.ts, *.spec.ts, or __tests__/ files found",
+      "no jest.config, vitest.config, playwright.config, cypress.config, or .mocharc"
+    ]
+  }
+}

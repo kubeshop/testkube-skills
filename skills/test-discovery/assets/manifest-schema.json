@@ -1,0 +1,201 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/kubeshop/testkube-skills/main/skills/test-discovery/assets/manifest-schema.json",
+  "title": "test-discovery manifest",
+  "description": "Structured output of the test-discovery skill.",
+  "type": "object",
+  "required": ["schemaVersion", "status"],
+  "oneOf": [
+    { "$ref": "#/definitions/success" },
+    { "$ref": "#/definitions/needsInput" },
+    { "$ref": "#/definitions/error" },
+    { "$ref": "#/definitions/noTestsFound" }
+  ],
+  "definitions": {
+    "success": {
+      "type": "object",
+      "required": ["schemaVersion", "status", "repository", "discovery", "suites", "warnings"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "status": { "const": "success" },
+        "repository": { "$ref": "#/definitions/repository" },
+        "discovery": { "$ref": "#/definitions/discovery" },
+        "suites": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/suite" }
+        },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "needsInput": {
+      "type": "object",
+      "required": ["schemaVersion", "status", "reason", "message"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "status": { "const": "needs_input" },
+        "reason": {
+          "enum": [
+            "ambiguous_test_framework",
+            "multiple_workspaces_no_root",
+            "too_many_files",
+            "unknown_framework_high_signal"
+          ]
+        },
+        "message": { "type": "string" },
+        "context": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "error": {
+      "type": "object",
+      "required": ["schemaVersion", "status", "code", "message"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "status": { "const": "error" },
+        "code": {
+          "enum": ["repo_not_found", "repo_not_readable", "internal_error"]
+        },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "noTestsFound": {
+      "type": "object",
+      "required": ["schemaVersion", "status", "repository", "discovery", "checked"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "status": { "const": "no_tests_found" },
+        "repository": { "$ref": "#/definitions/repository" },
+        "discovery": { "$ref": "#/definitions/discovery" },
+        "checked": {
+          "type": "object",
+          "required": ["totalFiles", "languagesDetected", "reasons"],
+          "properties": {
+            "totalFiles": { "type": "integer", "minimum": 0 },
+            "languagesDetected": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "reasons": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "repository": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {
+        "path": { "type": "string" },
+        "revision": { "type": ["string", "null"] }
+      }
+    },
+    "discovery": {
+      "type": "object",
+      "required": ["startedAt", "finishedAt", "agent", "skill"],
+      "properties": {
+        "startedAt": { "type": "string", "format": "date-time" },
+        "finishedAt": { "type": "string", "format": "date-time" },
+        "agent": { "type": "string" },
+        "skill": { "type": "string" }
+      }
+    },
+    "suite": {
+      "type": "object",
+      "required": [
+        "name",
+        "framework",
+        "language",
+        "workingDir",
+        "testFilesCount",
+        "versionSource",
+        "confidence",
+        "evidence"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "framework": {
+          "enum": [
+            "playwright",
+            "cypress",
+            "jest",
+            "vitest",
+            "mocha",
+            "k6",
+            "artillery",
+            "postman",
+            "jmeter",
+            "go-test",
+            "go-testify",
+            "pytest",
+            "unittest",
+            "maven-surefire",
+            "gradle-test",
+            "cargo-test",
+            "rspec",
+            "unknown"
+          ]
+        },
+        "language": {
+          "enum": [
+            "go",
+            "javascript",
+            "typescript",
+            "java",
+            "kotlin",
+            "python",
+            "rust",
+            "ruby",
+            "csharp",
+            "php",
+            "elixir",
+            "other"
+          ]
+        },
+        "workingDir": { "type": "string" },
+        "configFile": { "type": ["string", "null"] },
+        "testFiles": {
+          "type": "array",
+          "items": { "type": "string" },
+          "maxItems": 10
+        },
+        "testFilesCount": { "type": "integer", "minimum": 0 },
+        "testCommand": { "type": ["string", "null"] },
+        "installCommand": { "type": ["string", "null"] },
+        "version": { "type": ["string", "null"] },
+        "versionSource": {
+          "enum": ["lock", "manifest_pinned", "manifest_range", "not_found"]
+        },
+        "suggestedImage": { "type": ["string", "null"] },
+        "templateHint": { "type": ["string", "null"] },
+        "envVars": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "artifactsHint": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

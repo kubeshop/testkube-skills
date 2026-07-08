@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "status": "success",
+  "repository": {
+    "path": "/data/repo",
+    "revision": "abc123def456"
+  },
+  "discovery": {
+    "startedAt": "2026-07-01T13:00:00Z",
+    "finishedAt": "2026-07-01T13:00:11Z",
+    "agent": "pi/0.79.6",
+    "skill": "test-discovery/0.1.0"
+  },
+  "suites": [
+    {
+      "name": "go-unit",
+      "framework": "go-testify",
+      "language": "go",
+      "workingDir": "/data/repo/services/api",
+      "configFile": null,
+      "testFiles": [
+        "/data/repo/services/api/handlers/user_test.go",
+        "/data/repo/services/api/handlers/order_test.go",
+        "/data/repo/services/api/db/repository_test.go"
+      ],
+      "testFilesCount": 47,
+      "testCommand": "go test ./...",
+      "installCommand": "go mod download",
+      "version": "1.22",
+      "versionSource": "manifest_pinned",
+      "suggestedImage": "golang:1.22-alpine",
+      "templateHint": null,
+      "envVars": ["DATABASE_URL", "JWT_SECRET", "REDIS_URL"],
+      "artifactsHint": ["coverage.out"],
+      "confidence": 0.95,
+      "evidence": [
+        "go.mod at services/api/",
+        "github.com/stretchr/testify in go.sum",
+        "47 files matching **/*_test.go",
+        "go 1.22 directive in go.mod"
+      ]
+    },
+    {
+      "name": "web-jest-unit",
+      "framework": "jest",
+      "language": "typescript",
+      "workingDir": "/data/repo/apps/web",
+      "configFile": "/data/repo/apps/web/jest.config.ts",
+      "testFiles": [
+        "/data/repo/apps/web/src/components/Button.test.tsx",
+        "/data/repo/apps/web/src/hooks/useAuth.test.ts"
+      ],
+      "testFilesCount": 22,
+      "testCommand": "npm test",
+      "installCommand": "pnpm install --frozen-lockfile",
+      "version": "29.7.0",
+      "versionSource": "lock",
+      "suggestedImage": "node:22-alpine",
+      "templateHint": null,
+      "envVars": ["NODE_ENV", "CI"],
+      "artifactsHint": ["coverage/**"],
+      "confidence": 0.95,
+      "evidence": [
+        "jest.config.ts present at apps/web/",
+        "jest@29.7.0 in pnpm-lock.yaml",
+        "scripts.test invokes jest",
+        "22 files matching **/*.test.{ts,tsx}"
+      ]
+    },
+    {
+      "name": "web-playwright-e2e",
+      "framework": "playwright",
+      "language": "typescript",
+      "workingDir": "/data/repo/apps/web/e2e",
+      "configFile": "/data/repo/apps/web/e2e/playwright.config.ts",
+      "testFiles": [
+        "/data/repo/apps/web/e2e/tests/login.spec.ts",
+        "/data/repo/apps/web/e2e/tests/checkout.spec.ts"
+      ],
+      "testFilesCount": 8,
+      "testCommand": "npx playwright test",
+      "installCommand": "pnpm install --frozen-lockfile",
+      "version": "1.49.0",
+      "versionSource": "lock",
+      "suggestedImage": "mcr.microsoft.com/playwright:v1.49.0-noble",
+      "templateHint": "official/playwright/v1",
+      "envVars": ["BASE_URL", "CI"],
+      "artifactsHint": ["playwright-report/**", "test-results/**"],
+      "confidence": 0.95,
+      "evidence": [
+        "playwright.config.ts present at apps/web/e2e/",
+        "@playwright/test@1.49.0 in pnpm-lock.yaml",
+        "8 files matching tests/**/*.spec.ts"
+      ]
+    },
+    {
+      "name": "perf-k6-checkout",
+      "framework": "k6",
+      "language": "javascript",
+      "workingDir": "/data/repo/perf",
+      "configFile": null,
+      "testFiles": [
+        "/data/repo/perf/checkout-load.js",
+        "/data/repo/perf/login-spike.js"
+      ],
+      "testFilesCount": 2,
+      "testCommand": "k6 run /data/repo/perf/checkout-load.js",
+      "installCommand": null,
+      "version": null,
+      "versionSource": "not_found",
+      "suggestedImage": "grafana/k6:0.49.0",
+      "templateHint": "official/k6/v1",
+      "envVars": ["TARGET_URL", "VUS", "DURATION"],
+      "artifactsHint": [],
+      "confidence": 0.75,
+      "evidence": [
+        "2 .js files under perf/ with 'from \"k6/http\"' imports",
+        "no package.json in perf/, so no version signal"
+      ]
+    }
+  ],
+  "warnings": [
+    "apps/web has both jest and vitest listed in devDependencies but only jest has a config file; vitest treated as vestigial"
+  ]
+}

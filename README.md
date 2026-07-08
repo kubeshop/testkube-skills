@@ -35,6 +35,27 @@ into the `testkube` namespace. Standalone mode is CLI-driven (no dashboard).
 > (minikube, kind, k3d, remote) first and reuses it; installs missing pieces only
 > after confirming each step with the user.
 
+### test-discovery
+
+**Use when:** a repository has been cloned locally and you need to know what
+tests exist, what framework runs them, and what command executes them.
+
+Walks a repo, detects language and framework from marker files (config,
+manifest, lock files) and content signals, and groups findings into suites.
+Every suite carries evidence + confidence, resolved framework version from lock
+files, and a suggested container image. Handles polyglot monorepos, reports
+ambiguity via `needs_input`, and never executes any test or install command.
+
+> Emits one of two formats from the same walk: a **JSON manifest** for programs
+> (the `testworkflow-author` skill, cloud-api ingestion, CI) and a
+> **Markdown report** for a person to read — which also opens cleanly in any
+> plain-text editor. JSON is the default; Markdown is emitted when the
+> invocation asks for it or the output path ends in `.md`.
+
+Output contract: single document to stdout — JSON by default (matching
+[`skills/test-discovery/assets/manifest-schema.json`](./skills/test-discovery/assets/manifest-schema.json)),
+or Markdown on request.
+
 ### testworkflow-author
 
 **Use when:** creating a TestWorkflow YAML file, choosing step types, or writing
@@ -65,29 +86,30 @@ codes, symptoms, and recommended fixes.
 
 ## How they work together
 
-The four skills fall into two groups: **setup** (get a working CLI + environment)
-and the **core chain** (author → run).
+The five skills fall into two groups: **setup** (get a working CLI + environment)
+and the **core chain** (discover → author → run).
 
 ```
   SETUP                              CORE CHAIN
   ─────                              ──────────
 
-installing-testkube-cli        testworkflow-author        testworkflow-runner
-        │                            │                             │
-        │ install / verify CLI       │ write + validate YAML       │ run + diagnose
-        ▼                            │                             │
-installing-testkube-oss-agent        ▼                             ▼
-        │ spin up an environment  workflow.yaml ──────────►  execution logs
-        │ to run against                                           │
-        └──────── prerequisites for ────► the core chain          ▼
-                                                            root cause report
+installing-testkube-cli        test-discovery         testworkflow-author        testworkflow-runner
+        │                            │                        │                          │
+        │ install / verify CLI       │ walk repo, emit        │ write + validate YAML    │ run + diagnose
+        ▼                            │ test-manifest.json     │                          │
+installing-testkube-oss-agent        │                        │                          │
+        │ spin up an environment     ▼                        ▼                          ▼
+        │ to run against      test-manifest.json ─────►  workflow.yaml ──────────►  execution logs
+        │                                                                                 │
+        └──────────── prerequisites for ────────────► the core chain                     ▼
+                                                                                   root cause report
 ```
 
 First get the tooling ready — `installing-testkube-cli` ensures the `testkube`
 command exists, and `installing-testkube-oss-agent` gives you an environment to
 run against (skip it if you already have a Testkube Cloud or OSS environment).
-Then the core chain runs: authoring produces a runnable TestWorkflow, and the
-runner executes it and reports back.
+Then the core chain runs: discovery reports what tests exist, authoring turns
+that into a runnable TestWorkflow, and the runner executes it and reports back.
 
 ## Installation
 
@@ -97,6 +119,7 @@ Copy the skill directories to your agent's skills folder:
 ```bash
 cp -r skills/installing-testkube-cli ~/.claude/skills/
 cp -r skills/installing-testkube-oss-agent ~/.claude/skills/
+cp -r skills/test-discovery ~/.claude/skills/
 cp -r skills/testworkflow-author ~/.claude/skills/
 cp -r skills/testworkflow-runner ~/.claude/skills/
 ```
@@ -105,6 +128,7 @@ cp -r skills/testworkflow-runner ~/.claude/skills/
 ```bash
 cp -r skills/installing-testkube-cli .github/skills/
 cp -r skills/installing-testkube-oss-agent .github/skills/
+cp -r skills/test-discovery .github/skills/
 cp -r skills/testworkflow-author .github/skills/
 cp -r skills/testworkflow-runner .github/skills/
 ```
@@ -116,6 +140,7 @@ Invoke a skill directly:
 ```
 /installing-testkube-cli Install the Testkube CLI if it isn't already present
 /installing-testkube-oss-agent Spin up a local OSS Testkube environment
+/test-discovery Analyze the repository at /path/to/repo
 /testworkflow-author Create a Playwright workflow for the login page
 /testworkflow-runner Run the workflow and diagnose any failures
 ```
@@ -132,6 +157,7 @@ skill description and loads the relevant skill on demand.
 
 Skills are then invoked as `/testkube-skills:installing-testkube-cli`,
 `/testkube-skills:installing-testkube-oss-agent`,
+`/testkube-skills:test-discovery`,
 `/testkube-skills:testworkflow-author`, and
 `/testkube-skills:testworkflow-runner`, or auto-loaded when relevant.
 
