@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "status": "needs_input",
+  "reason": "credential_name",
+  "message": "The tests reference API_TOKEN but no credential name was provided to resolve it.",
+  "context": {
+    "missing": [
+      "API_TOKEN"
+    ]
+  }
+}

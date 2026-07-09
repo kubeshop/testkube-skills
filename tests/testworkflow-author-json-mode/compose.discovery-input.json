@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "status": "success",
+  "repository": {
+    "path": "/data/repo",
+    "revision": "abc123"
+  },
+  "discovery": {
+    "startedAt": "2026-07-08T12:00:00Z",
+    "finishedAt": "2026-07-08T12:00:06Z",
+    "agent": "pi/0.79.6",
+    "skill": "test-discovery/0.1.0"
+  },
+  "suites": [
+    {
+      "name": "go-unit",
+      "framework": "go-testify",
+      "language": "go",
+      "workingDir": "/data/repo",
+      "testFilesCount": 10,
+      "versionSource": "lock",
+      "confidence": 0.95,
+      "evidence": [
+        "go.mod at root",
+        "testify in go.sum",
+        "10 *_test.go files"
+      ]
+    },
+    {
+      "name": "e2e-playwright",
+      "framework": "playwright",
+      "language": "typescript",
+      "workingDir": "/data/repo/e2e",
+      "testFilesCount": 4,
+      "versionSource": "lock",
+      "confidence": 0.95,
+      "evidence": [
+        "playwright.config.ts at e2e/",
+        "@playwright/test@1.56.1 in lock",
+        "4 *.spec.ts"
+      ]
+    },
+    {
+      "name": "e2e-cypress",
+      "framework": "cypress",
+      "language": "typescript",
+      "workingDir": "/data/repo/cypress",
+      "testFilesCount": 6,
+      "versionSource": "lock",
+      "confidence": 0.9,
+      "evidence": [
+        "cypress.config.ts",
+        "cypress@13.16.1 in lock",
+        "6 *.cy.ts"
+      ]
+    },
+    {
+      "name": "perf-k6",
+      "framework": "k6",
+      "language": "javascript",
+      "workingDir": "/data/repo/perf",
+      "testFilesCount": 3,
+      "versionSource": "not_found",
+      "confidence": 0.75,
+      "evidence": [
+        "3 .js importing k6/http",
+        "Makefile test-perf runs k6"
+      ]
+    }
+  ],
+  "warnings": []
+}
