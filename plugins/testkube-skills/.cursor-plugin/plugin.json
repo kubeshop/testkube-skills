@@ -25,5 +25,5 @@
     "load-testing",
     "diagnose"
   ],
-  "skills": "../../skills/"
+  "skills": "./skills"
 }

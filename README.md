@@ -53,7 +53,7 @@ ambiguity via `needs_input`, and never executes any test or install command.
 > invocation asks for it or the output path ends in `.md`.
 
 Output contract: single document to stdout — JSON by default (matching
-[`skills/test-discovery/assets/manifest-schema.json`](./skills/test-discovery/assets/manifest-schema.json)),
+[`plugins/testkube-skills/skills/test-discovery/assets/manifest-schema.json`](./plugins/testkube-skills/skills/test-discovery/assets/manifest-schema.json)),
 or Markdown on request.
 
 ### testworkflow-author
@@ -117,20 +117,20 @@ Copy the skill directories to your agent's skills folder:
 
 **Claude Code:**
 ```bash
-cp -r skills/installing-testkube-cli ~/.claude/skills/
-cp -r skills/installing-testkube-oss-agent ~/.claude/skills/
-cp -r skills/test-discovery ~/.claude/skills/
-cp -r skills/testworkflow-author ~/.claude/skills/
-cp -r skills/testworkflow-runner ~/.claude/skills/
+cp -r plugins/testkube-skills/skills/installing-testkube-cli ~/.claude/skills/
+cp -r plugins/testkube-skills/skills/installing-testkube-oss-agent ~/.claude/skills/
+cp -r plugins/testkube-skills/skills/test-discovery ~/.claude/skills/
+cp -r plugins/testkube-skills/skills/testworkflow-author ~/.claude/skills/
+cp -r plugins/testkube-skills/skills/testworkflow-runner ~/.claude/skills/
 ```
 
 **VS Code / GitHub Copilot:**
 ```bash
-cp -r skills/installing-testkube-cli .github/skills/
-cp -r skills/installing-testkube-oss-agent .github/skills/
-cp -r skills/test-discovery .github/skills/
-cp -r skills/testworkflow-author .github/skills/
-cp -r skills/testworkflow-runner .github/skills/
+cp -r plugins/testkube-skills/skills/installing-testkube-cli .github/skills/
+cp -r plugins/testkube-skills/skills/installing-testkube-oss-agent .github/skills/
+cp -r plugins/testkube-skills/skills/test-discovery .github/skills/
+cp -r plugins/testkube-skills/skills/testworkflow-author .github/skills/
+cp -r plugins/testkube-skills/skills/testworkflow-runner .github/skills/
 ```
 
 ## Usage

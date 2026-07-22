@@ -24,7 +24,7 @@
     "load-testing",
     "diagnose"
   ],
-  "skills": "../../skills/",
+  "skills": "./skills",
   "interface": {
     "displayName": "Testkube Skills",
     "shortDescription": "Install, discover, author, run, and diagnose Testkube from your AI agent",
