@@ -17,7 +17,7 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILL="$(cd "$HERE/../../skills/testworkflow-author" && pwd)"
+SKILL="$(cd "$HERE/../../plugins/testkube-skills/skills/testworkflow-author" && pwd)"
 SKILL_MD="$SKILL/SKILL.md"
 IN_SCHEMA="$SKILL/assets/json-mode-input.schema.json"
 OUT_SCHEMA="$SKILL/assets/json-mode-output.schema.json"
@@ -104,7 +104,7 @@ grep -q 'byte-for-byte the YAML you would have written to disk' "$SKILL_MD" \
   || bad "SKILL.md missing the identical-YAML guarantee"
 
 echo "== 5. Composition scenario: 4 discovered suites -> one orchestrator =="
-DISCO_SCHEMA="$(cd "$HERE/../.." && pwd)/skills/test-discovery/assets/manifest-schema.json"
+DISCO_SCHEMA="$(cd "$HERE/../.." && pwd)/plugins/testkube-skills/skills/test-discovery/assets/manifest-schema.json"
 # 5a. The input really is valid test-discovery output (proves the pipe is real).
 #     Uses the test-discovery schema via jsonschema when available; otherwise a
 #     discovery-shaped structural check (the generic validate() fallback is
