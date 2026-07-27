@@ -1,0 +1,5 @@
+interface:
+  display_name: "Test Discovery"
+  short_description: "Find the tests and frameworks in a repository"
+  brand_color: "#564BFB"
+  default_prompt: "Use $test-discovery to report the tests in this repository."

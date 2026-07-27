@@ -1,0 +1,5 @@
+interface:
+  display_name: "Install Testkube CLI"
+  short_description: "Install, upgrade, or verify the Testkube CLI"
+  brand_color: "#564BFB"
+  default_prompt: "Use $installing-testkube-cli to make sure the Testkube CLI is available."

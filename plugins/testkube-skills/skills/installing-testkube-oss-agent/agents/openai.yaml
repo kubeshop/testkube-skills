@@ -1,0 +1,5 @@
+interface:
+  display_name: "Install Testkube OSS Agent"
+  short_description: "Deploy a local Testkube OSS agent to Kubernetes"
+  brand_color: "#564BFB"
+  default_prompt: "Use $installing-testkube-oss-agent to set up a local Testkube OSS agent."
