@@ -1,8 +1,6 @@
 ---
 name: testworkflow-author
 description: "Create and validate Testkube TestWorkflow YAML files. Use when writing test workflow YAML, choosing step types, or when the user asks to create a Testkube TestWorkflow. Covers shell steps, container run steps, execute composition, templates, services, artifacts, config parameters, and cron triggers. By default it takes free-form requirements and writes a YAML file; it can OPTIONALLY take a structured JSON authoring request and/or emit the finished workflow as JSON for programmatic callers, without changing the default behavior. Does NOT run workflows — that is the testworkflow-runner skill's responsibility."
-metadata:
-  initiative: test-authoring
 ---
 
 # testworkflow-author

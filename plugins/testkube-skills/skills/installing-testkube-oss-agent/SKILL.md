@@ -1,8 +1,6 @@
 ---
 name: installing-testkube-oss-agent
 description: "Set up a local Testkube OSS standalone agent — deploy the open-source Testkube agent into a Kubernetes cluster for local testing (k3d by default when a fresh local cluster is needed; minikube, kind, k3d, or remote all work). Use when you need a local OSS Testkube environment and none is running yet. Checks for an existing Testkube agent in the current cluster of ANY type first and reuses it; installs missing pieces only after confirming each step with the user."
-metadata:
-  initiative: test-authoring
 ---
 
 # installing-testkube-oss-agent
