@@ -40,7 +40,7 @@ Testkube ships faster than any model's training data. Fetch, do not recall.
 | TestWorkflowTemplate schema              | `../testworkflow-author/assets/template-schema.yaml`                             |
 | Live CRD shape in a cluster              | `kubectl explain testworkflow.spec --recursive`                                  |
 | Deep TestWorkflow concepts               | `../testworkflow-author/references/docs-concepts.md`                             |
-| Worked YAML (22 frameworks)              | `../testworkflow-author/examples/` — indexed in `references/examples-catalog.md` |
+| Worked YAML (22 frameworks)              | `../testworkflow-author/examples/` — indexed in `../testworkflow-author/references/examples-catalog.md` |
 | REST API                                 | https://docs.testkube.io/openapi/overview                                        |
 | CRD reference                            | https://docs.testkube.io/articles/crds                                           |
 | What changed recently                    | https://docs.testkube.io/changelog                                               |
