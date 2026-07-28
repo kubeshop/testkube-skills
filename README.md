@@ -9,6 +9,22 @@ VS Code agent mode.
 
 ## Skills
 
+### testkube
+
+**Use when:** the user mentions Testkube and no more specific skill covers the task —
+"what is Testkube?", "where are the docs for X?", "how do triggers work?", or any
+question about the platform model.
+
+The general entry point. Explains what Testkube is, the Control Plane vs OSS
+standalone topologies, and the core concepts (TestWorkflow, templates, executions,
+agents, triggers, webhooks, expressions). Carries a verified index of
+[docs.testkube.io](https://docs.testkube.io) links, CLI orientation, and decision
+trees that route to the specialist skills below.
+
+> Orients and routes — it does NOT install anything, author YAML, or run executions
+> itself. For anything no skill covers (webhooks, triggers, integrations), it routes
+> to the docs and `testkube ... --help` rather than guessing.
+
 ### installing-testkube-cli
 
 **Use when:** the Testkube CLI is missing (`testkube: command not found`),
@@ -86,10 +102,16 @@ codes, symptoms, and recommended fixes.
 
 ## How they work together
 
-The five skills fall into two groups: **setup** (get a working CLI + environment)
-and the **core chain** (discover → author → run).
+`testkube` is the **entry point** — it explains the platform and routes to the right
+specialist. The other five fall into two groups: **setup** (get a working CLI +
+environment) and the **core chain** (discover → author → run).
 
 ```
+                   testkube
+            (orientation + routing)
+                       │
+    ┌──────────────────┴──────────────────┐
+    ▼                                     ▼
   SETUP                              CORE CHAIN
   ─────                              ──────────
 
@@ -105,7 +127,8 @@ installing-testkube-oss-agent        │                        │             
                                                                                    root cause report
 ```
 
-First get the tooling ready — `installing-testkube-cli` ensures the `testkube`
+Start with `testkube` when you don't yet know which skill you need — it identifies the
+task and hands off. From there, first get the tooling ready — `installing-testkube-cli` ensures the `testkube`
 command exists, and `installing-testkube-oss-agent` gives you an environment to
 run against (skip it if you already have a Testkube Cloud or OSS environment).
 Then the core chain runs: discovery reports what tests exist, authoring turns
@@ -117,6 +140,7 @@ Copy the skill directories to your agent's skills folder:
 
 **Claude Code:**
 ```bash
+cp -r plugins/testkube-skills/skills/testkube ~/.claude/skills/
 cp -r plugins/testkube-skills/skills/installing-testkube-cli ~/.claude/skills/
 cp -r plugins/testkube-skills/skills/installing-testkube-oss-agent ~/.claude/skills/
 cp -r plugins/testkube-skills/skills/test-discovery ~/.claude/skills/
@@ -126,6 +150,7 @@ cp -r plugins/testkube-skills/skills/testworkflow-runner ~/.claude/skills/
 
 **VS Code / GitHub Copilot:**
 ```bash
+cp -r plugins/testkube-skills/skills/testkube .github/skills/
 cp -r plugins/testkube-skills/skills/installing-testkube-cli .github/skills/
 cp -r plugins/testkube-skills/skills/installing-testkube-oss-agent .github/skills/
 cp -r plugins/testkube-skills/skills/test-discovery .github/skills/
@@ -138,6 +163,7 @@ cp -r plugins/testkube-skills/skills/testworkflow-runner .github/skills/
 Invoke a skill directly:
 
 ```
+/testkube What is Testkube and where do I start?
 /installing-testkube-cli Install the Testkube CLI if it isn't already present
 /installing-testkube-oss-agent Spin up a local OSS Testkube environment
 /test-discovery Analyze the repository at /path/to/repo
@@ -155,7 +181,8 @@ skill description and loads the relevant skill on demand.
 /plugin install testkube-skills@testkube-skills
 ```
 
-Skills are then invoked as `/testkube-skills:installing-testkube-cli`,
+Skills are then invoked as `/testkube-skills:testkube`,
+`/testkube-skills:installing-testkube-cli`,
 `/testkube-skills:installing-testkube-oss-agent`,
 `/testkube-skills:test-discovery`,
 `/testkube-skills:testworkflow-author`, and
