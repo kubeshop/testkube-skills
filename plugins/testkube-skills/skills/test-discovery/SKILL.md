@@ -1,6 +1,8 @@
 ---
 name: test-discovery
 description: "Walk a cloned repository, identify test files by framework and language, and report what was found in either a machine-readable JSON manifest or a human-readable Markdown report. Use when a repository has been cloned locally and you need to know what tests exist, what framework runs them, and what command executes them. The JSON output is consumed by programs (the testworkflow-author skill, cloud-api ingestion, CI); the Markdown output is meant for a person to read and opens cleanly in any plain-text editor. This skill does NOT execute tests, install dependencies, or write any TestWorkflow YAML — it observes and reports."
+metadata:
+  initiative: test-authoring
 ---
 
 # test-discovery

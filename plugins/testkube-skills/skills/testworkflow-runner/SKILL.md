@@ -1,6 +1,8 @@
 ---
 name: testworkflow-runner
 description: "Run, monitor, and diagnose Testkube TestWorkflow executions. Use when a TestWorkflow has been authored and needs to be executed, or when a previous execution failed and needs diagnosis. Reports execution results and root causes — does NOT edit workflow YAML."
+metadata:
+  initiative: test-authoring
 ---
 
 # testworkflow-runner
