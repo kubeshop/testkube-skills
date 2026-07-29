@@ -65,7 +65,7 @@ These are mandatory. Violating any rule produces answers that look authoritative
 
 ## Quick decision trees
 
-### "I want my repo's tests running in Testkube"
+### "I want to run my tests with Testkube"
 
 ```
 Is the `testkube` command available?
