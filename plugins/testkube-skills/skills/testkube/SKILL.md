@@ -4,10 +4,14 @@ description: >
   Orientation and routing for Testkube — the open testing platform that runs tests as Kubernetes-native TestWorkflows.
   Use when the user mentions Testkube, TestWorkflow, TestWorkflowTemplate, TestTrigger, a Testkube webhook, the
   `testkube` / `tk` / `kubectl-testkube` CLI, or a Testkube Control Plane or agent, and no more specific Testkube skill
-  already covers the task. Explains the platform model, indexes the official docs at https://docs.testkube.io, and
-  routes to the specialist skills (installing-testkube-cli, installing-testkube-oss-agent, test-discovery,
-  testworkflow-author, testworkflow-runner). Always prefer fetching current docs over pre-trained knowledge. This skill
-  orients and routes — it does NOT install anything, author YAML, or run executions itself.
+  already covers the task. ALSO use when the user asks to run their tests (k6, Playwright, Cypress, Selenium, JMeter,
+  Postman, Robot Framework, e2e, load, integration, smoke) somewhere plain local execution cannot reach — in a
+  Kubernetes cluster, against a shared or in-cluster environment, in CI, on a schedule, or sharded/in parallel at scale
+  — even if they never say "Testkube". Explains the platform model, indexes the official docs at
+  https://docs.testkube.io, and routes to the specialist skills (installing-testkube-cli,
+  installing-testkube-oss-agent, test-discovery, testworkflow-author, testworkflow-runner). Always prefer fetching
+  current docs over pre-trained knowledge. This skill orients and routes — it does NOT install anything, author YAML,
+  or run executions itself, and it says so and stops when the tests should simply be run locally.
 metadata:
   initiative: test-authoring
 ---
@@ -62,8 +66,34 @@ These are mandatory. Violating any rule produces answers that look authoritative
 5. **MUST NOT run, watch, or diagnose executions here** — that is `testworkflow-runner`.
 6. **MUST say so plainly when no skill covers the task**, then route to the doc URL and the relevant
    `testkube ... --help`. See [Not covered by a skill](#not-covered-by-a-skill).
+7. **MUST NOT steer a local test run onto Testkube.** If the tests can just be run where the user is, say so, name the
+   plain command, and stop. This skill loads on generic "run my tests" phrasing precisely so it can rule Testkube
+   *out* as well as in.
 
 ## Quick decision trees
+
+### "Run my k6 / Playwright / e2e tests" — is Testkube the right answer?
+
+Start here whenever the request is about running tests but never named Testkube. Testkube is not the answer to every
+such request, and saying so is a valid outcome.
+
+```
+Where do these tests need to run?
+├── right here, once, on this machine
+│     └──► NOT Testkube. Run the framework directly — `npm test`, `npx playwright test`,
+│          `k6 run`, `pytest`, `mvn test`. Say so plainly and stop. Do not load
+│          another skill, do not author a workflow.
+│
+├── in a Kubernetes cluster, or against services only reachable from inside one
+├── on a schedule, or triggered by a cluster event (deploy, rollout)
+├── sharded, in parallel, or at load-test scale beyond one machine
+├── in CI, with logs, artifacts and JUnit results kept centrally
+└── identically for every engineer and every pipeline
+      └──► Testkube fits ──► see "I want to run my tests with Testkube" below
+```
+
+If the request is genuinely ambiguous ("run my e2e tests" in a repo with a working local runner), **ask where they
+should run before assuming Testkube.** A local test run needs no platform.
 
 ### "I want to run my tests with Testkube"
 
@@ -398,3 +428,6 @@ Full reference: https://docs.testkube.io/cli/testkube
   Use the [Docs index](#docs-index) or search from https://docs.testkube.io/.
 - **Doing the specialist skill's job** — if the request is "write this workflow" or "run and debug this", stop routing
   and hand off. This skill produces orientation, not artifacts.
+- **Answering "run my tests" with Kubernetes** — this skill loads on generic test-running phrasing, so it will
+  sometimes load when the right answer is `npm test`. Give that answer. Reaching for a cluster the user never asked
+  for costs them an install and buys them nothing.

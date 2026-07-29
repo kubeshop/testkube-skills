@@ -12,8 +12,9 @@ VS Code agent mode.
 ### testkube
 
 **Use when:** the user mentions Testkube and no more specific skill covers the task —
-"what is Testkube?", "where are the docs for X?", "how do triggers work?", or any
-question about the platform model.
+"what is Testkube?", "where are the docs for X?", "how do triggers work?" — or when
+they ask to run tests somewhere local execution can't reach ("run my k6 tests against
+staging", "run this suite on a schedule"), even without naming Testkube.
 
 The general entry point. Explains what Testkube is, the Control Plane vs OSS
 standalone topologies, and the core concepts (TestWorkflow, templates, executions,
@@ -23,7 +24,9 @@ trees that route to the specialist skills below.
 
 > Orients and routes — it does NOT install anything, author YAML, or run executions
 > itself. For anything no skill covers (webhooks, triggers, integrations), it routes
-> to the docs and `testkube ... --help` rather than guessing.
+> to the docs and `testkube ... --help` rather than guessing. And when the tests
+> should simply be run locally, it says so and stops rather than steering you onto
+> a cluster.
 
 ### installing-testkube-cli
 
