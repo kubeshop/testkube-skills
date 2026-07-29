@@ -48,8 +48,12 @@ Testkube ships faster than any model's training data. Fetch, do not recall.
 | REST API                                 | https://docs.testkube.io/openapi/overview                                        |
 | CRD reference                            | https://docs.testkube.io/articles/crds                                           |
 | What changed recently                    | https://docs.testkube.io/changelog                                               |
+| A doc URL that 404s, or a page not indexed below | https://docs.testkube.io/sitemap.xml — every live page, authoritative     |
 
 When the docs and any bundled reference file disagree, **the docs win** — reference files are snapshots.
+
+The [Docs index](#docs-index) below is curated and can go stale. **If a link from it 404s, do not guess a replacement
+slug — fetch the sitemap and find the current URL.**
 
 ## Rules
 
@@ -123,7 +127,7 @@ Local cluster, open source, CLI-driven, no dashboard
   └──► installing-testkube-oss-agent
 
 Testkube Cloud or on-prem Control Plane (dashboard, multi-env, licensed runners)
-  └──► docs: /articles/install/overview, /articles/install/multi-agent
+  └──► docs: /articles/install/overview, /articles/multi-agent-runner-helm-chart
 
 Not sure which one I need
   └──► docs: /articles/install/feature-comparison
@@ -260,7 +264,8 @@ Full matrix: https://docs.testkube.io/articles/install/feature-comparison
 
 ## Docs index
 
-All URLs below are under `https://docs.testkube.io`.
+All URLs below are under `https://docs.testkube.io`. This index is curated, not generated — if a link 404s, get the
+current URL from https://docs.testkube.io/sitemap.xml rather than guessing a slug.
 
 **Start here**
 
@@ -278,12 +283,11 @@ All URLs below are under `https://docs.testkube.io`.
 | --- | --- |
 | Install overview | https://docs.testkube.io/articles/install/overview |
 | Standalone agent (OSS) | https://docs.testkube.io/articles/install/standalone-agent |
-| Multi-agent install | https://docs.testkube.io/articles/install/multi-agent |
+| Runner agent Helm chart | https://docs.testkube.io/articles/multi-agent-runner-helm-chart |
 | Install with Helm | https://docs.testkube.io/articles/install/install-with-helm |
 | Advanced install | https://docs.testkube.io/articles/install/advanced-install |
 | OSS vs Control Plane | https://docs.testkube.io/articles/install/feature-comparison |
-| Testkube OSS | https://docs.testkube.io/articles/testkube-oss |
-| Dependencies | https://docs.testkube.io/articles/testkube-dependencies |
+| MongoDB administration | https://docs.testkube.io/articles/mongodb-administration |
 
 **Concepts**
 
@@ -293,6 +297,7 @@ All URLs below are under `https://docs.testkube.io`.
 | Architecture | https://docs.testkube.io/articles/architecture |
 | Agents overview | https://docs.testkube.io/articles/agents-overview |
 | Agent CLI commands | https://docs.testkube.io/articles/multi-agent-cli |
+| Environment management | https://docs.testkube.io/articles/environment-management |
 | Using Testkube | https://docs.testkube.io/articles/using-testkube |
 
 **TestWorkflows**
@@ -340,7 +345,7 @@ All URLs below are under `https://docs.testkube.io`.
 | Licensing | https://docs.testkube.io/articles/licensing |
 | Telemetry | https://docs.testkube.io/articles/telemetry |
 | Legacy deprecations | https://docs.testkube.io/articles/legacy-deprecation |
-| Logging | https://docs.testkube.io/articles/logging |
+| Logs & artifacts | https://docs.testkube.io/articles/logs-and-artifacts |
 | Examples & guides | https://docs.testkube.io/articles/examples/overview |
 | Changelog | https://docs.testkube.io/changelog |
 
