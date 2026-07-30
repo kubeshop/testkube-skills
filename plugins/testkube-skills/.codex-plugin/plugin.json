@@ -47,8 +47,7 @@
     "logo": "./assets/logo.png",
     "defaultPrompt": [
       "What is Testkube and how do I get started with it?",
-      "Discover the tests in this repo and name the framework.",
-      "Author a Testkube TestWorkflow for my test suite.",
+      "Discover the tests in this repo and author a Testkube TestWorkflow for them.",
       "Run my TestWorkflow and diagnose any failures."
     ]
   }
