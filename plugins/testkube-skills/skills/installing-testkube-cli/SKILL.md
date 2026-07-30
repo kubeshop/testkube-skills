@@ -1,12 +1,6 @@
 ---
 name: installing-testkube-cli
-description: >
-  Install, upgrade, or verify the Testkube CLI (the `testkube` / `tk` / `kubectl-testkube` command) on Linux, macOS, or
-  Windows. Use when the CLI is missing (`testkube: command not found`), before running any Testkube skill that shells
-  out to `testkube`, or when a specific CLI version is required. Checks for an existing installation first and reuses it
-  when present, and installs only after confirming with the user — never reinstalls a working CLI.
-metadata:
-  initiative: test-authoring
+description: "Install, upgrade, or verify the Testkube CLI (the `testkube` / `tk` / `kubectl-testkube` command) on Linux, macOS, or Windows. Use when the CLI is missing (`testkube: command not found`), before running any Testkube skill that shells out to `testkube`, or when a specific CLI version is required. Checks for an existing installation first and reuses it when present, and installs only after confirming with the user — never reinstalls a working CLI."
 ---
 
 # installing-testkube-cli

@@ -1,0 +1,5 @@
+interface:
+  display_name: "TestWorkflow Author"
+  short_description: "Write and validate Testkube TestWorkflow YAML"
+  brand_color: "#564BFB"
+  default_prompt: "Use $testworkflow-author to write a TestWorkflow for my test suite."

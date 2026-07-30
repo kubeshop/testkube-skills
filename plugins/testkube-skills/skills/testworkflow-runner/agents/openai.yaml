@@ -1,0 +1,5 @@
+interface:
+  display_name: "TestWorkflow Runner"
+  short_description: "Run and diagnose TestWorkflow executions"
+  brand_color: "#564BFB"
+  default_prompt: "Use $testworkflow-runner to run my TestWorkflow and diagnose failures."

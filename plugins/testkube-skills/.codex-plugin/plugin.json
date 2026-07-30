@@ -42,12 +42,13 @@
       "Execute"
     ],
     "websiteURL": "https://testkube.io",
+    "brandColor": "#564BFB",
+    "composerIcon": "./assets/composer-icon.png",
+    "logo": "./assets/logo.png",
     "defaultPrompt": [
       "What is Testkube and how do I get started with it?",
-      "Install the Testkube CLI if it isn't already present.",
-      "Set up a local Testkube OSS agent, reusing my current cluster if it already has one.",
-      "Discover the tests in this repository and tell me what framework runs them.",
-      "Author a Testkube TestWorkflow YAML for my test suite.",
+      "Discover the tests in this repo and name the framework.",
+      "Author a Testkube TestWorkflow for my test suite.",
       "Run my TestWorkflow and diagnose any failures."
     ]
   }

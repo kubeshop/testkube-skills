@@ -1,19 +1,6 @@
 ---
 name: testkube
-description: >
-  Orientation and routing for Testkube — the open testing platform that runs tests as Kubernetes-native TestWorkflows.
-  Use when the user mentions Testkube, TestWorkflow, TestWorkflowTemplate, TestTrigger, a Testkube webhook, the
-  `testkube` / `tk` / `kubectl-testkube` CLI, or a Testkube Control Plane or agent, and no more specific Testkube skill
-  already covers the task. ALSO use when the user asks to run their tests (k6, Playwright, Cypress, Selenium, JMeter,
-  Postman, Robot Framework, e2e, load, integration, smoke) somewhere plain local execution cannot reach — in a
-  Kubernetes cluster, against a shared or in-cluster environment, in CI, on a schedule, or sharded/in parallel at scale
-  — even if they never say "Testkube". Explains the platform model, indexes the official docs at
-  https://docs.testkube.io, and routes to the specialist skills (installing-testkube-cli,
-  installing-testkube-oss-agent, test-discovery, testworkflow-author, testworkflow-runner). Always prefer fetching
-  current docs over pre-trained knowledge. This skill orients and routes — it does NOT install anything, author YAML,
-  or run executions itself, and it says so and stops when the tests should simply be run locally.
-metadata:
-  initiative: test-authoring
+description: "Orientation and routing for Testkube — the open testing platform that runs tests as Kubernetes-native TestWorkflows. Use when the user mentions Testkube, TestWorkflow, TestWorkflowTemplate, TestTrigger, a Testkube webhook, the `testkube` / `tk` / `kubectl-testkube` CLI, or a Testkube Control Plane or agent, and no more specific Testkube skill already covers the task. ALSO use when the user asks to run their tests (k6, Playwright, Cypress, Selenium, JMeter, Postman, Robot Framework, e2e, load, integration, smoke) somewhere plain local execution cannot reach — in a Kubernetes cluster, against a shared or in-cluster environment, in CI, on a schedule, or sharded/in parallel at scale — even if they never mention Testkube by name. Explains the platform model, indexes the official docs at https://docs.testkube.io, and routes to the specialist skills (installing-testkube-cli, installing-testkube-oss-agent, test-discovery, testworkflow-author, testworkflow-runner). Always prefer fetching current docs over pre-trained knowledge. This skill orients and routes — it does NOT install anything, author YAML, or run executions itself, and it says so and stops when the tests should simply be run locally."
 ---
 
 # testkube

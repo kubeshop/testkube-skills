@@ -1,0 +1,5 @@
+interface:
+  display_name: "Testkube"
+  short_description: "Learn what Testkube is and which skill to use next"
+  brand_color: "#564BFB"
+  default_prompt: "Use $testkube to explain what Testkube is and how to get started."
