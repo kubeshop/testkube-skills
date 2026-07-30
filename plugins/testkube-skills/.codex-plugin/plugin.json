@@ -1,7 +1,7 @@
 {
   "name": "testkube-skills",
   "version": "1.0.0",
-  "description": "Testkube skills for AI coding agents: install or reuse the Testkube CLI and a local OSS agent, discover tests in a repository, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions.",
+  "description": "Testkube skills for AI coding agents: learn what Testkube is and where its docs are, install or reuse the Testkube CLI and a local OSS agent, discover tests in a repository, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions.",
   "author": {
     "name": "Testkube",
     "email": "support@testkube.io"
@@ -22,13 +22,18 @@
     "yaml",
     "e2e",
     "load-testing",
-    "diagnose"
+    "diagnose",
+    "docs",
+    "orientation",
+    "testworkflowtemplate",
+    "webhooks",
+    "triggers"
   ],
   "skills": "./skills",
   "interface": {
     "displayName": "Testkube Skills",
-    "shortDescription": "Install, discover, author, run, and diagnose Testkube from your AI agent",
-    "longDescription": "Five skills for working with Testkube from an AI coding agent: install or reuse the Testkube CLI, set up a local Testkube OSS agent, discover the tests in a cloned repository, author and validate TestWorkflow YAML, and run and diagnose TestWorkflow executions. Setup skills check for an existing install first and reuse it, installing missing pieces only after confirming each step with the user.",
+    "shortDescription": "Learn, install, discover, author, run, and diagnose Testkube from your AI agent",
+    "longDescription": "Six skills for working with Testkube from an AI coding agent: a general orientation skill that explains what Testkube is, indexes the official docs, and routes to the others; install or reuse the Testkube CLI; set up a local Testkube OSS agent; discover the tests in a cloned repository; author and validate TestWorkflow YAML; and run and diagnose TestWorkflow executions. Setup skills check for an existing install first and reuse it, installing missing pieces only after confirming each step with the user.",
     "developerName": "Testkube",
     "category": "Productivity",
     "capabilities": [
@@ -38,6 +43,7 @@
     ],
     "websiteURL": "https://testkube.io",
     "defaultPrompt": [
+      "What is Testkube and how do I get started with it?",
       "Install the Testkube CLI if it isn't already present.",
       "Set up a local Testkube OSS agent, reusing my current cluster if it already has one.",
       "Discover the tests in this repository and tell me what framework runs them.",
