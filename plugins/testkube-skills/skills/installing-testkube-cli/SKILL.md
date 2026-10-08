@@ -1,6 +1,6 @@
 ---
 name: installing-testkube-cli
-description: "Install, upgrade, or verify the Testkube CLI (the `testkube` / `tk` / `kubectl-testkube` command) on Linux, macOS, or Windows. Use when the CLI is missing (`testkube: command not found`), before running any Testkube skill that shells out to `testkube`, or when a specific CLI version is required. Checks for an existing installation first and reuses it when present, and installs only after confirming with the user — never reinstalls a working CLI."
+description: "Install, upgrade, or verify the Testkube CLI (the `testkube` / `tk` / `kubectl-testkube` command) on Linux, macOS, or Windows. Use when the CLI is missing (`testkube: command not found`), before running any Testkube skill that shells out to `testkube`, or when a specific CLI version is required. Checks for an existing installation first and reuses it when present, and installs only through a package manager after confirming with the user — never reinstalls a working CLI."
 ---
 
 # installing-testkube-cli
@@ -42,14 +42,10 @@ version the environment depends on.
    If no specific version was requested, **stop here and reuse the existing binary**. If a specific version was
    requested, compare the client version from `testkube version` to the target — reuse when they match; install or
    upgrade only when they differ.
-2. **Only if absent or wrong version, install — after confirming with the user** — first make sure the chosen method's
-   prerequisites are on PATH (see Prerequisites), then describe the exact install command, wait for the user's
-   go-ahead, and run it (see Install). Recommended on Linux/macOS:
-   ```bash
-   curl -sSLf https://get.testkube.io -o /tmp/testkube-install.sh && bash /tmp/testkube-install.sh
-   ```
-   Run it with **`bash`**, not `sh` — the script uses `set -eo pipefail`, which fails under `dash`
-   (the default `/bin/sh` on Debian/Ubuntu) with `Illegal option -o pipefail`.
+2. **Only if absent or wrong version, install through a package manager — after confirming with the user** — pick the
+   method for the platform (see Install), make sure its package manager is on PATH, describe the exact command and
+   version, wait for the user's go-ahead, and run it. When no supported package manager is available, **do not
+   download the CLI yourself** — hand off to the user (see [No package manager](#no-package-manager)).
 3. **Verify** — confirm the client version prints:
 
    **Linux/macOS (bash/zsh):**
@@ -68,34 +64,40 @@ version the environment depends on.
 ## Rules
 
 1. **MUST check for an existing CLI before installing.** Run `command -v testkube` (or `tk` / `kubectl-testkube`)
-   first. If it resolves, reuse it — do not download or reinstall.
+   first. If it resolves, reuse it — do not reinstall.
 2. **MUST confirm with the user before installing or upgrading.** Describe the exact install command (and version)
    and wait for the user's go-ahead before running it — never install unprompted.
-3. **MUST NOT reinstall a working CLI.** Install only when the CLI is absent, or when a required version differs from
+3. **MUST install only through a package manager.** Use Homebrew, APT, or Chocolatey as listed under Install. Never
+   download and run an install script, and never download a release binary or tarball — not even a pinned one. If
+   none of those package managers is available, stop and hand off to the user.
+4. **MUST pin an exact version with APT and Chocolatey.** Pass the version explicitly (`testkube=<version>`,
+   `--version <version>`); look it up first if the user did not name one.
+5. **MUST NOT reinstall a working CLI.** Install only when the CLI is absent, or when a required version differs from
    the one reported by `testkube version`.
-4. **MUST verify after installing.** `testkube version` must print a client version before reporting success.
-5. **MUST NOT install the cluster agent here.** This skill installs only the client binary. Deploying the Testkube
+6. **MUST verify after installing.** `testkube version` must print a client version before reporting success.
+7. **MUST NOT install the cluster agent here.** This skill installs only the client binary. Deploying the Testkube
    agent/control plane into a cluster is separate (`testkube init standalone-agent`, Helm). See
    https://docs.testkube.io/articles/install/overview.
 
 ## Prerequisites
 
-The installed client binary has no runtime dependencies, but each install *method* needs a few tools on PATH. Check
-them before installing; if any are missing, install them with the OS package manager first (confirm with the user, per
-Rule 2).
+The installed client binary has no runtime dependencies; the install method needs its package manager on PATH.
 
 | Method | Requires on PATH |
 |--------|------------------|
-| Install script (recommended) | `curl` and `jq` — the script exits early if either is missing |
-| Manual download | `curl` or `wget`, plus `tar` |
+| macOS / Linux (Homebrew) | `brew` |
 | Ubuntu / Debian (APT) | `sudo`, `apt-get`, `gnupg`, `wget` |
-| macOS (Homebrew) | `brew` |
 | Windows (Chocolatey) | `choco` |
 
-Quick check for the recommended script method:
-
+**Linux/macOS (bash/zsh):**
 ```bash
-command -v curl && command -v jq || echo "install curl and/or jq first (e.g. sudo apt-get install -y curl jq)"
+command -v brew || command -v apt-get || echo "no supported package manager; see 'No package manager'"
+```
+
+**Windows (PowerShell):**
+```powershell
+$PM = (Get-Command choco -ErrorAction SilentlyContinue).Source
+if ($PM) { $PM } else { Write-Host "no supported package manager; see 'No package manager'" }
 ```
 
 ## Install
@@ -104,55 +106,14 @@ Only reached when step 1 finds no existing CLI, or when a required version diffe
 
 | Platform | Command |
 |----------|---------|
-| Linux / macOS (script) | `curl -sSLf https://get.testkube.io -o /tmp/testkube-install.sh && bash /tmp/testkube-install.sh` |
-| macOS (Homebrew) | `brew install testkube` |
-| Ubuntu / Debian (APT) | see [Ubuntu / Debian](#ubuntu--debian-apt) below |
-| Windows (Chocolatey) | `choco install testkube -y` (after adding the source) |
-| Specific version | Use the export flow in [Install script (recommended)](#install-script-recommended): export `TESTKUBE_VERSION=<version>`, then run the installer |
-| Beta channel | `curl -sSLf https://get.testkube.io \| bash -s -- beta` |
+| macOS / Linux (Homebrew) | `brew install testkube` |
+| Ubuntu / Debian (APT) | `sudo apt-get install -y --allow-downgrades testkube=<version>` after adding the repository — see [Ubuntu / Debian](#ubuntu--debian-apt) |
+| Windows (Chocolatey) | `choco install testkube --version <version> -y` after adding the source — see [Windows](#windows-chocolatey) |
+| Anything else | [No package manager](#no-package-manager) — the user installs it |
 
-### Install script (recommended)
-
-The script auto-detects OS (Linux/Darwin) and arch (x86_64/arm64/i386), downloads the matching release tarball
-from GitHub, and installs into `/usr/local/bin` (using `sudo` only if that directory isn't writable). For Windows,
-use the Chocolatey method below or install manually.
-
- ```bash
- curl -sSLf https://get.testkube.io -o /tmp/testkube-install.sh && bash /tmp/testkube-install.sh
- ```
-
-Pin a version by exporting `TESTKUBE_VERSION` first (pick a release from
-https://github.com/kubeshop/testkube/releases):
-
- ```bash
- export TESTKUBE_VERSION=<version>
- curl -sSLf https://get.testkube.io -o /tmp/testkube-install.sh && bash /tmp/testkube-install.sh
- ```
-
-### No-sudo / non-interactive install
-
-The script installs into `/usr/local/bin`, which usually needs `sudo`. In a non-interactive session
-(CI, an agent shell, no TTY) `sudo` can't prompt for a password and the script fails with
-`sudo: a terminal is required to read the password`. When you can't use `sudo` interactively, install
-the binary into a writable directory that's already on PATH (e.g. `~/.local/bin`) — no root needed:
-
-> **Release tags have NO `v` prefix.** The tag and the version in the filename are the bare number,
-> e.g. `2.11.0` — the download path is `releases/download/2.11.0/testkube_2.11.0_...`, NOT
-> `releases/download/v2.11.0/...`. A `v`-prefixed URL 404s. Set `VER` to the bare number (no `v`).
-
-```bash
-VER="${TESTKUBE_VERSION:-2.11.0}"   # bare version, NO 'v' prefix; releases at github.com/kubeshop/testkube/releases
-TARBALL="testkube_${VER}_Linux_x86_64.tar.gz"
-curl -sSLf "https://github.com/kubeshop/testkube/releases/download/${VER}/${TARBALL}" -o "/tmp/${TARBALL}"
-tar -xzf "/tmp/${TARBALL}" -C /tmp kubectl-testkube
-mkdir -p "$HOME/.local/bin"
-install -m 0755 /tmp/kubectl-testkube "$HOME/.local/bin/kubectl-testkube"
-ln -sf "$HOME/.local/bin/kubectl-testkube" "$HOME/.local/bin/testkube"
-ln -sf "$HOME/.local/bin/kubectl-testkube" "$HOME/.local/bin/tk"
-```
-
-Confirm `~/.local/bin` is on PATH (`echo "$PATH" | tr ':' '\n' | grep -F "$HOME/.local/bin"`); if not,
-pick another writable PATH dir. Swap `Linux_x86_64` for your OS/arch (`Darwin_arm64`, etc.).
+Testkube versions are the bare number with **no `v` prefix** (`2.14.0`, not `v2.14.0`). Always take the version from
+the package manager's own list (`apt-cache madison testkube`, `choco search testkube --exact --all-versions`): a
+git tag can exist before its packages are published, so a tag alone does not make a version installable.
 
 ### Homebrew
 
@@ -160,7 +121,12 @@ pick another writable PATH dir. Swap `Linux_x86_64` for your OS/arch (`Darwin_ar
 brew install testkube      # upgrade later with: brew upgrade testkube
 ```
 
+Homebrew installs the current release of the formula and cannot pin an older one. When the user needs a specific
+version that differs from what `brew info testkube` offers, use APT or Chocolatey, or hand off to the user.
+
 ### Ubuntu / Debian (APT)
+
+Add the Testkube repository once:
 
 ```bash
 sudo apt-get update && sudo apt-get install -y gnupg wget
@@ -168,51 +134,54 @@ sudo install -m 0755 -d /etc/apt/keyrings
 wget -qO- https://repo.testkube.io/key.pub | sudo gpg --dearmor -o /etc/apt/keyrings/testkube.gpg
 echo "deb [signed-by=/etc/apt/keyrings/testkube.gpg] https://repo.testkube.io/linux linux main" | sudo tee /etc/apt/sources.list.d/testkube.list
 sudo apt-get update
-sudo apt-get install -y testkube
+```
+
+Then list the available versions and install an exact one:
+
+```bash
+apt-cache madison testkube                       # pick a version from this list
+sudo apt-get install -y --allow-downgrades testkube=<version>   # e.g. testkube=2.14.0
 ```
 
 ### Windows (Chocolatey)
 
 ```powershell
 choco source add --name=kubeshop_repo --source=https://chocolatey.kubeshop.io/chocolate
-choco install testkube -y
+choco search testkube --exact --all-versions     # pick a version from this list
+choco install testkube --version <version> -y    # e.g. --version 2.14.0
 ```
 
-### Manual
+### No package manager
 
-When you can't run the script (air-gapped, custom install dir, CI without curl-pipe):
+When none of Homebrew, APT, or Chocolatey is available (another Linux distribution, an air-gapped machine, no `sudo`
+in a non-interactive shell), **stop and ask the user to install the CLI themselves** — do not download a script,
+tarball, or binary on their behalf. Point them to the install guide:
 
-1. Download the tarball for your OS/arch from https://github.com/kubeshop/testkube/releases — file name is
-   `testkube_<version>_<OS>_<arch>.tar.gz` (e.g. `testkube_2.11.0_Linux_x86_64.tar.gz`). The tag and
-   `<version>` are the bare number with **no `v` prefix** (`2.11.0`, not `v2.11.0`) — a `v`-prefixed URL 404s.
-2. Extract `kubectl-testkube` and move it onto PATH:
+https://docs.testkube.io/articles/install/cli
 
-```bash
-tar -xzf testkube_<version>_<OS>_<arch>.tar.gz kubectl-testkube
-sudo mv kubectl-testkube /usr/local/bin/kubectl-testkube
-sudo ln -sf /usr/local/bin/kubectl-testkube /usr/local/bin/testkube
-sudo ln -sf /usr/local/bin/kubectl-testkube /usr/local/bin/tk
-```
+Once they confirm it is installed, resume at step 3 (Verify).
 
 ## Upgrade / reinstall
 
-Confirm with the user first (Rule 2) — describe the exact command and target version, then re-run the same install
-command. The script and Homebrew both overwrite the existing binary with the chosen release. To downgrade, pin
-`TESTKUBE_VERSION` (script) or use a manual download.
+Confirm with the user first (Rule 2) — describe the exact command and target version:
+
+- Homebrew: `brew upgrade testkube`
+- APT: `sudo apt-get update && sudo apt-get install -y --allow-downgrades testkube=<version>` (upgrades or downgrades)
+- Chocolatey: `choco upgrade testkube --version <version> -y` (add `--allow-downgrade` to go back a version)
 
 ## Common Mistakes
 
 - **Reinstalling when the CLI is already present** — always run the step-1 existence check first and reuse what's there.
-- **`testkube: command not found` after install** — `/usr/local/bin` isn't on PATH, or the shell cached the old lookup.
-  Run `hash -r` (bash/zsh) or open a new shell, then `which testkube`.
-- **Script aborts immediately** — missing `curl` or `jq`. Install them via your package manager first.
-- **`Illegal option -o pipefail`** — you ran the script with `sh`/`dash`. It requires `bash` (`set -eo pipefail`).
-  Re-run with `bash /tmp/testkube-install.sh`.
-- **`sudo: a terminal is required to read the password`** — the script needs `sudo` for `/usr/local/bin` but there's
-  no interactive TTY (CI/agent shell). Use the [No-sudo / non-interactive install](#no-sudo--non-interactive-install)
-  into a writable PATH dir like `~/.local/bin`.
-- **`curl: (22) ... 404` on the release download** — you added a `v` to the version. Testkube release tags have **no
-  `v` prefix**: the URL is `releases/download/2.11.0/testkube_2.11.0_...`, not `.../v2.11.0/...`. Use the bare number.
+- **Downloading the CLI when no package manager fits** — hand off to the user with the install guide instead
+  (Rule 3).
+- **`testkube: command not found` after install** — the package manager's bin directory isn't on PATH, or the shell
+  cached the old lookup. Run `hash -r` (bash/zsh) or open a new shell, then `which testkube`.
+- **`sudo: a terminal is required to read the password`** — APT needs `sudo`, which can't prompt in a non-interactive
+  shell (CI/agent). Ask the user to run the install themselves, or use Homebrew, which doesn't need root.
+- **`E: Packages were downgraded and -y was used without --allow-downgrades`** — the requested version is older than
+  the installed one. Add `--allow-downgrades`, as the commands above do.
+- **`E: Version '<version>' for 'testkube' was not found`** — the version has a `v` prefix or isn't published. Pick an
+  exact version from `apt-cache madison testkube`.
 - **Chocolatey can't find the package** — add the source first:
   `choco source add --name=kubeshop_repo --source=https://chocolatey.kubeshop.io/chocolate`.
 - **Confusing CLI with cluster install** — this skill installs only the client binary; the cluster agent is separate.

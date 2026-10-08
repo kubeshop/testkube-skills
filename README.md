@@ -35,8 +35,9 @@ before running any skill that shells out to `testkube`, or when a specific CLI
 version is required.
 
 Installs, upgrades, or verifies the Testkube CLI (`testkube` / `tk` /
-`kubectl-testkube`) on Linux, macOS, and Windows via the install script,
-Homebrew, APT, Chocolatey, or a manual download.
+`kubectl-testkube`) on Linux, macOS, and Windows through Homebrew, APT (pinned),
+or Chocolatey (pinned). Never downloads install scripts or binaries itself —
+with no supported package manager, it hands off to the user.
 
 > Checks for an existing installation first and reuses it, and installs only
 > after confirming with the user — never reinstalls a working CLI.
