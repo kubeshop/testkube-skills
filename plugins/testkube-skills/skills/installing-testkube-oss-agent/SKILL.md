@@ -78,11 +78,22 @@ Run these in order. Reuse whatever already exists; confirm every mutating step w
    unless it is given a version, so always pin one with `--helm-arg version=<chart-version>`. This takes two
    separate approvals:
 
-   a. **Add the Helm repository** — skip if `helm repo list` already shows `kubeshop`. Otherwise this changes Helm's
-      repository configuration and cache, so confirm with the user first, then:
+   a. **Add the Helm repository** — first check whether a `kubeshop` entry exists and where it points (read-only):
       ```bash
-      helm repo add kubeshop https://kubeshop.github.io/helm-charts
-      helm repo update
+      helm repo list 2>/dev/null | awk '$1 == "kubeshop" { print $2 }'
+      ```
+      - **Prints `https://kubeshop.github.io/helm-charts`** — reuse it; skip to the update below.
+      - **Prints nothing** — add it.
+      - **Prints any other URL** — the entry points somewhere else, and both the version search and the deploy would
+        trust charts from there (`testkube init` also reuses an existing `kubeshop` entry without checking its URL).
+        Show the user the current URL, and only with their approval replace it with `--force-update`.
+
+      Adding or replacing the entry and updating the cache change Helm's repository configuration, so confirm with the
+      user first, then:
+      ```bash
+      helm repo add kubeshop https://kubeshop.github.io/helm-charts               # when missing
+      helm repo add kubeshop https://kubeshop.github.io/helm-charts --force-update  # when it points elsewhere
+      helm repo update kubeshop
       ```
    b. **Pick an exact chart version** (read-only):
       ```bash
