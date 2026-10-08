@@ -70,10 +70,15 @@ Run these in order. Reuse whatever already exists; confirm every mutating step w
    ```
    Skip if you already have a running cluster to use — reuse it (e.g. `minikube start` / an existing `k3d cluster
    list` entry). k3d merges its context into your kubeconfig and switches to it.
-5. **Deploy the agent (if missing)** — confirm, then:
+5. **Deploy the agent (if missing)** — pick an exact chart version, confirm it with the user, then deploy it.
+   `testkube init standalone-agent` installs the latest `kubeshop/testkube` chart unless it is given a version, so
+   always pass one with `--helm-arg version=<chart-version>`:
    ```bash
+   helm repo add kubeshop https://kubeshop.github.io/helm-charts
+   helm repo update
+   helm search repo kubeshop/testkube --versions | head   # pick an exact chart version
    TK_CMD="$(command -v testkube || command -v tk || command -v kubectl-testkube)"
-   if [ -n "$TK_CMD" ]; then "$TK_CMD" init standalone-agent --no-confirm; else echo "Testkube CLI not found; use installing-testkube-cli"; fi
+   if [ -n "$TK_CMD" ]; then "$TK_CMD" init standalone-agent --helm-arg version=<chart-version> --no-confirm; else echo "Testkube CLI not found; use installing-testkube-cli"; fi
    ```
    (`testkube init oss` is an alias.) Skip if the `testkube` namespace already has the agent Running. **Get the
    user's approval before running this (Rule 2).** Note: `testkube init standalone-agent` prints
@@ -117,7 +122,9 @@ Run these in order. Reuse whatever already exists; confirm every mutating step w
    and `helm` on PATH. Docker (`docker info`) is required only when creating a k3d cluster. `k3d` is installed by
    step 3 when needed.
 8. **MUST NOT download and run install scripts or release binaries.** Install missing tools only through a package
-   manager (pinned to an exact version where it supports one); otherwise ask the user to install them.
+   manager (pinned to an exact version where it supports one); otherwise ask the user to install them. Deploy the
+   agent from an exact chart version too — `--helm-arg version=<chart-version>` for `testkube init`, `--version` for
+   Helm.
 
 ## Helm alternative (Step 5)
 

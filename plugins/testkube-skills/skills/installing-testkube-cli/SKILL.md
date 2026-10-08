@@ -100,7 +100,7 @@ Only reached when step 1 finds no existing CLI, or when a required version diffe
 | Platform | Command |
 |----------|---------|
 | macOS / Linux (Homebrew) | `brew install testkube` |
-| Ubuntu / Debian (APT) | `sudo apt-get install -y testkube=<version>` after adding the repository — see [Ubuntu / Debian](#ubuntu--debian-apt) |
+| Ubuntu / Debian (APT) | `sudo apt-get install -y --allow-downgrades testkube=<version>` after adding the repository — see [Ubuntu / Debian](#ubuntu--debian-apt) |
 | Windows (Chocolatey) | `choco install testkube --version <version> -y` after adding the source — see [Windows](#windows-chocolatey) |
 | Anything else | [No package manager](#no-package-manager) — the user installs it |
 
@@ -132,7 +132,7 @@ Then list the available versions and install an exact one:
 
 ```bash
 apt-cache madison testkube                       # pick a version from this list
-sudo apt-get install -y testkube=<version>       # e.g. testkube=2.14.1
+sudo apt-get install -y --allow-downgrades testkube=<version>   # e.g. testkube=2.14.1
 ```
 
 ### Windows (Chocolatey)
@@ -158,7 +158,7 @@ Once they confirm it is installed, resume at step 3 (Verify).
 Confirm with the user first (Rule 2) — describe the exact command and target version:
 
 - Homebrew: `brew upgrade testkube`
-- APT: `sudo apt-get update && sudo apt-get install -y testkube=<version>` (also downgrades)
+- APT: `sudo apt-get update && sudo apt-get install -y --allow-downgrades testkube=<version>` (upgrades or downgrades)
 - Chocolatey: `choco upgrade testkube --version <version> -y` (add `--allow-downgrade` to go back a version)
 
 ## Common Mistakes
@@ -170,6 +170,8 @@ Confirm with the user first (Rule 2) — describe the exact command and target v
   cached the old lookup. Run `hash -r` (bash/zsh) or open a new shell, then `which testkube`.
 - **`sudo: a terminal is required to read the password`** — APT needs `sudo`, which can't prompt in a non-interactive
   shell (CI/agent). Ask the user to run the install themselves, or use Homebrew, which doesn't need root.
+- **`E: Packages were downgraded and -y was used without --allow-downgrades`** — the requested version is older than
+  the installed one. Add `--allow-downgrades`, as the commands above do.
 - **`E: Version '<version>' for 'testkube' was not found`** — the version has a `v` prefix or isn't published. Pick an
   exact version from `apt-cache madison testkube`.
 - **Chocolatey can't find the package** — add the source first:
