@@ -13,6 +13,10 @@ the CLI. **k3d** (k3s in Docker) is the default when you need a *fresh* local cl
 remote) — and reuse it.** Only create a cluster or deploy the agent when none is running, and **confirm each mutating
 step with the user before running it** — these commands install binaries, create clusters, and deploy into them.
 
+**Every command in this skill is Bash.** On Windows, run the whole skill from Git Bash or WSL, not PowerShell or
+`cmd.exe` — the checks use `command -v` and `[ -n ... ]`, which PowerShell cannot run. Windows executables such as
+`choco`, `kubectl`, `helm`, and `k3d` work from Git Bash as long as they are on PATH.
+
 ## The Core Loop
 
 Run these in order. Reuse whatever already exists; confirm every mutating step with the user before running it.
@@ -57,10 +61,10 @@ Run these in order. Reuse whatever already exists; confirm every mutating step w
 3. **Install k3d (if missing)** — confirm with the user, then install it through a package manager:
    ```bash
    brew install k3d                                    # macOS / Linux (Homebrew)
+   choco install k3d --version 5.7.4 -y                # Windows, from Git Bash (Chocolatey), pinned to an exact version
    ```
-   ```powershell
-   choco install k3d --version 5.7.4 -y                # Windows (Chocolatey), pinned to an exact version
-   ```
+   Chocolatey needs an elevated shell — if Git Bash isn't running as Administrator, ask the user to run the
+   `choco install` themselves.
    Skip if `command -v k3d` already resolves, or if you're reusing minikube/kind/another cluster. When neither
    package manager is available, **do not download k3d or its install script yourself** — ask the user to install it
    (https://k3d.io/stable/#installation) or to point you at an existing cluster, then continue.
