@@ -89,8 +89,15 @@ The installed client binary has no runtime dependencies; the install method need
 | Ubuntu / Debian (APT) | `sudo`, `apt-get`, `gnupg`, `wget` |
 | Windows (Chocolatey) | `choco` |
 
+**Linux/macOS (bash/zsh):**
 ```bash
 command -v brew || command -v apt-get || echo "no supported package manager; see 'No package manager'"
+```
+
+**Windows (PowerShell):**
+```powershell
+$PM = (Get-Command choco -ErrorAction SilentlyContinue).Source
+if ($PM) { $PM } else { Write-Host "no supported package manager; see 'No package manager'" }
 ```
 
 ## Install
