@@ -104,8 +104,9 @@ Only reached when step 1 finds no existing CLI, or when a required version diffe
 | Windows (Chocolatey) | `choco install testkube --version <version> -y` after adding the source — see [Windows](#windows-chocolatey) |
 | Anything else | [No package manager](#no-package-manager) — the user installs it |
 
-Testkube versions are the bare number with **no `v` prefix** (`2.14.1`, not `v2.14.1`); the list of releases is at
-https://github.com/kubeshop/testkube/releases.
+Testkube versions are the bare number with **no `v` prefix** (`2.14.0`, not `v2.14.0`). Always take the version from
+the package manager's own list (`apt-cache madison testkube`, `choco search testkube --exact --all-versions`): a
+git tag can exist before its packages are published, so a tag alone does not make a version installable.
 
 ### Homebrew
 
@@ -132,7 +133,7 @@ Then list the available versions and install an exact one:
 
 ```bash
 apt-cache madison testkube                       # pick a version from this list
-sudo apt-get install -y --allow-downgrades testkube=<version>   # e.g. testkube=2.14.1
+sudo apt-get install -y --allow-downgrades testkube=<version>   # e.g. testkube=2.14.0
 ```
 
 ### Windows (Chocolatey)
@@ -140,7 +141,7 @@ sudo apt-get install -y --allow-downgrades testkube=<version>   # e.g. testkube=
 ```powershell
 choco source add --name=kubeshop_repo --source=https://chocolatey.kubeshop.io/chocolate
 choco search testkube --exact --all-versions     # pick a version from this list
-choco install testkube --version <version> -y    # e.g. --version 2.14.1
+choco install testkube --version <version> -y    # e.g. --version 2.14.0
 ```
 
 ### No package manager
