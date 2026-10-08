@@ -26,16 +26,16 @@ Run these in order. Reuse whatever already exists; confirm every mutating step w
     if [ -n "$TK_CMD" ]; then echo "$TK_CMD"; else echo "Testkube CLI not found; use installing-testkube-cli"; fi
    command -v kubectl                                  # kubectl — talk to the cluster
    command -v helm                                     # helm — testkube init standalone-agent invokes Helm internally
-   command -v curl                                     # curl — k3d install script
    ```
 
    Only when you need a fresh local k3d cluster (steps 3–4):
    ```bash
    docker info >/dev/null 2>&1 && echo docker-ok       # Docker daemon must be running
+   command -v k3d                                      # k3d — installed in step 3 if missing
    ```
 
-   Required always: the **Testkube CLI**, **`kubectl`**, **`helm`**, and **`curl`**. **Docker** is required only when
-   creating a k3d cluster. `k3d` itself is installed in step 3 if it's missing and you need a fresh local cluster.
+   Required always: the **Testkube CLI**, **`kubectl`**, and **`helm`**. **Docker** and **`k3d`** are required only
+   when creating a k3d cluster; `k3d` is installed through a package manager in step 3 if it's missing.
 2. **Check for an existing Testkube agent — in the current cluster of ANY type — and reuse it.** The agent may
    already be running in minikube, kind, k3d, or a remote cluster; detection is cluster-agnostic. Before creating
    anything:
@@ -54,13 +54,16 @@ Run these in order. Reuse whatever already exists; confirm every mutating step w
    ```
    Steps 3–4 create a *fresh local* cluster with k3d — **skip both entirely if you already have a usable cluster**
    (minikube, kind, k3d, remote) and just deploy the agent into it (step 5).
-3. **Install k3d (if missing)** — confirm with the user, then:
+3. **Install k3d (if missing)** — confirm with the user, then install it through a package manager:
    ```bash
-   command -v bash
-   curl -fsSL https://raw.githubusercontent.com/k3d-io/k3d/v5.7.4/install.sh -o /tmp/k3d-install.sh
-   TAG=v5.7.4 bash /tmp/k3d-install.sh
+   brew install k3d                                    # macOS / Linux (Homebrew)
    ```
-   Skip if `command -v k3d` already resolves, or if you're reusing minikube/kind/another cluster (e.g. `brew install k3d`).
+   ```powershell
+   choco install k3d --version 5.7.4 -y                # Windows (Chocolatey), pinned to an exact version
+   ```
+   Skip if `command -v k3d` already resolves, or if you're reusing minikube/kind/another cluster. When neither
+   package manager is available, **do not download k3d or its install script yourself** — ask the user to install it
+   (https://k3d.io/stable/#installation) or to point you at an existing cluster, then continue.
 4. **Create the cluster (if missing)** — confirm, then:
    ```bash
    k3d cluster create testkube
@@ -110,18 +113,23 @@ Run these in order. Reuse whatever already exists; confirm every mutating step w
    shell it hangs (piping `yes` does not help). Never skip the user's approval. Once they have approved, run
    non-interactively via the Helm alternative or with `--no-confirm` — the human approval is what matters, not who
    types `Y`. Leave the prompt for the user to answer only when a real human is interacting with the terminal.
-7. **REQUIRED SUB-SKILL:** the Testkube CLI must be present — use installing-testkube-cli. Also needs `kubectl`,
-   `helm`, and `curl` on PATH. Docker (`docker info`) is required only when creating a k3d cluster. `k3d` is installed
-   by step 3 when needed.
+7. **REQUIRED SUB-SKILL:** the Testkube CLI must be present — use installing-testkube-cli. Also needs `kubectl`
+   and `helm` on PATH. Docker (`docker info`) is required only when creating a k3d cluster. `k3d` is installed by
+   step 3 when needed.
+8. **MUST NOT download and run install scripts or release binaries.** Install missing tools only through a package
+   manager (pinned to an exact version where it supports one); otherwise ask the user to install them.
 
 ## Helm alternative (Step 5)
 
-Equivalent to `testkube init standalone-agent`, useful for pinning chart values / CI:
+Equivalent to `testkube init standalone-agent`, useful for pinning chart values / CI. Always pin the chart to an
+exact version:
 
 ```bash
 helm repo add kubeshop https://kubeshop.github.io/helm-charts
 helm repo update
+helm search repo kubeshop/testkube --versions | head   # pick an exact chart version
 helm upgrade --install testkube kubeshop/testkube \
+  --version <chart-version> \
   --create-namespace \
   --namespace testkube \
   --set installCRDs=true
