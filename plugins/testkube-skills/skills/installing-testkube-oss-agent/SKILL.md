@@ -70,23 +70,32 @@ Run these in order. Reuse whatever already exists; confirm every mutating step w
    ```
    Skip if you already have a running cluster to use — reuse it (e.g. `minikube start` / an existing `k3d cluster
    list` entry). k3d merges its context into your kubeconfig and switches to it.
-5. **Deploy the agent (if missing)** — pick an exact chart version, confirm it with the user, then deploy it.
-   `testkube init standalone-agent` installs the latest `kubeshop/testkube` chart unless it is given a version, so
-   always pass one with `--helm-arg version=<chart-version>`:
-   ```bash
-   helm repo add kubeshop https://kubeshop.github.io/helm-charts
-   helm repo update
-   helm search repo kubeshop/testkube --versions | head   # pick an exact chart version
-   TK_CMD="$(command -v testkube || command -v tk || command -v kubectl-testkube)"
-   if [ -n "$TK_CMD" ]; then "$TK_CMD" init standalone-agent --helm-arg version=<chart-version> --no-confirm; else echo "Testkube CLI not found; use installing-testkube-cli"; fi
-   ```
-   (`testkube init oss` is an alias.) Skip if the `testkube` namespace already has the agent Running. **Get the
-   user's approval before running this (Rule 2).** Note: `testkube init standalone-agent` prints
-   `Do you want to continue? [Y/n]` and reads the answer from the terminal (`/dev/tty`) — piping `yes` or any answer
-   to stdin does **not** reach it, so in a non-interactive / agent / CI shell the command hangs forever. Once the user
-   has approved out of band, run it non-interactively: prefer the **Helm alternative below** (inherently
-   non-interactive), or pass `--no-confirm` (the human approval Rule 2 requires has already happened — see Rule 6).
-   Only when a real human is at the terminal should you leave the prompt for them to answer.
+5. **Deploy the agent (if missing)** — `testkube init standalone-agent` installs the latest `kubeshop/testkube` chart
+   unless it is given a version, so always pin one with `--helm-arg version=<chart-version>`. This takes two
+   separate approvals:
+
+   a. **Add the Helm repository** — skip if `helm repo list` already shows `kubeshop`. Otherwise this changes Helm's
+      repository configuration and cache, so confirm with the user first, then:
+      ```bash
+      helm repo add kubeshop https://kubeshop.github.io/helm-charts
+      helm repo update
+      ```
+   b. **Pick an exact chart version** (read-only):
+      ```bash
+      helm search repo kubeshop/testkube --versions | head
+      ```
+   c. **Deploy** — confirm the chart version with the user, then:
+      ```bash
+      TK_CMD="$(command -v testkube || command -v tk || command -v kubectl-testkube)"
+      if [ -n "$TK_CMD" ]; then "$TK_CMD" init standalone-agent --helm-arg version=<chart-version> --no-confirm; else echo "Testkube CLI not found; use installing-testkube-cli"; fi
+      ```
+      (`testkube init oss` is an alias.) Skip if the `testkube` namespace already has the agent Running. **Get the
+      user's approval before running this (Rule 2).** Note: `testkube init standalone-agent` prints
+      `Do you want to continue? [Y/n]` and reads the answer from the terminal (`/dev/tty`) — piping `yes` or any answer
+      to stdin does **not** reach it, so in a non-interactive / agent / CI shell the command hangs forever. Once the user
+      has approved out of band, run it non-interactively: prefer the **Helm alternative below** (inherently
+      non-interactive), or pass `--no-confirm` (the human approval Rule 2 requires has already happened — see Rule 6).
+      Only when a real human is at the terminal should you leave the prompt for them to answer.
 6. **Verify** — wait until the API server pods are `Running` (and MinIO if installed — it is by default), then confirm
    CLI ↔ server:
    ```bash
@@ -128,13 +137,11 @@ Run these in order. Reuse whatever already exists; confirm every mutating step w
 
 ## Helm alternative (Step 5)
 
-Equivalent to `testkube init standalone-agent`, useful for pinning chart values / CI. Always pin the chart to an
-exact version:
+Equivalent to `testkube init standalone-agent`, useful for pinning chart values / CI. Follow the same approvals as
+step 5: add the repository (5a) and pick an exact chart version (5b) first, then confirm the version with the user
+and deploy:
 
 ```bash
-helm repo add kubeshop https://kubeshop.github.io/helm-charts
-helm repo update
-helm search repo kubeshop/testkube --versions | head   # pick an exact chart version
 helm upgrade --install testkube kubeshop/testkube \
   --version <chart-version> \
   --create-namespace \
