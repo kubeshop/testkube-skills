@@ -22,7 +22,7 @@ not specific enough.
 - Working dir: directory containing `playwright.config.*`
 - Test file pattern: `*.spec.{js,ts,mjs}` or `tests/**/*.spec.*`
 - Version source: `package-lock.json` → `node_modules/@playwright/test` version key; else `package.json` range
-- Default install: `npm ci` (or `pnpm install --frozen-lockfile` / `yarn install --frozen-lockfile` based on lock file)
+- Default install: depends on the lock file. With one, use the clean install for the matching manager (`npm ci`, `pnpm install --frozen-lockfile`, `yarn install --frozen-lockfile`). Without one (a scaffolded project), use the resolving install (`npm install`, `pnpm install`, `yarn install`); a clean install fails when no lock file exists
 - Default test command: `npx playwright test`
 - Suggested image pattern: `mcr.microsoft.com/playwright:v<major.minor.patch>-noble`
 - Template hint: `official/playwright/v1`
