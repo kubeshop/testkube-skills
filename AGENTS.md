@@ -38,7 +38,7 @@ tests/testworkflow-author-json-mode/run.sh     # after editing testworkflow-auth
 
 ## Other places that carry these skills
 
-- `kubeshop/testkube-cloud-api` has its own `testworkflow-author`, `testworkflow-runner` and `test-discovery` in `js/packages/runspace-controller/skills/`. They were adapted to the runspace's tools, for example editing an existing workflow through `edit_workflow` instead of writing YAML, and have diverged since. A change here does not reach them.
+- `kubeshop/testkube-cloud-api` carries `testworkflow-author`, `testworkflow-runner` and `test-discovery` in `js/packages/runspace-controller/skills/`, adapted to the runspace's tools (editing a workflow through `edit_workflow` instead of writing YAML). The files they share with this repository, mostly the schemas, examples and references, are listed in its `shared-skills.txt` with a pinned commit of this repository, and its `cloud-skills-drift` check fails when a copy differs. A change here reaches the runspace only when someone moves that pin and syncs the copies there; the adapted `SKILL.md` files are not copies and stay separate.
 - `kubeshop/testkube-docs` links to the docs index: its `AGENTS.md` asks for a fix here when a docs slug is renamed.
 
 ## PR title format
