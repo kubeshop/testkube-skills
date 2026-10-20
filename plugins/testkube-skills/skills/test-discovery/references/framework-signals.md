@@ -22,7 +22,15 @@ not specific enough.
 - Working dir: directory containing `playwright.config.*`
 - Test file pattern: `*.spec.{js,ts,mjs}` or `tests/**/*.spec.*`
 - Version source: `package-lock.json` → `node_modules/@playwright/test` version key; else `package.json` range
-- Default install: depends on the lock file. With one, use the clean install for the matching manager (`npm ci`, `pnpm install --frozen-lockfile`, `yarn install --frozen-lockfile`). Without one (a scaffolded project), use the resolving install (`npm install`, `pnpm install`, `yarn install`); a clean install fails when no lock file exists
+- Default install: depends on the lock file and, for Yarn, on its major version. Yarn 2+ (modern Yarn)
+  is the project with a `.yarnrc.yml`, or a `packageManager` field of `yarn@2` or later; otherwise it is
+  Yarn Classic (1.x).
+  - With a lock file, use the clean install: `npm ci`, `pnpm install --frozen-lockfile`,
+    `yarn install --frozen-lockfile` (Classic) or `yarn install --immutable` (Yarn 2+).
+  - Without one (a scaffolded project), a clean install fails, so use the resolving install: `npm install`,
+    `pnpm install`, `yarn install` (Classic), or `YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install` for
+    Yarn 2+. Modern Yarn makes installs immutable whenever `CI` is set, and Testkube sets `CI=1` in every
+    execution container, so a plain `yarn install` fails with YN0028 instead of writing `yarn.lock`
 - Default test command: `npx playwright test`
 - Suggested image pattern: `mcr.microsoft.com/playwright:v<major.minor.patch>-noble`
 - Template hint: `official/playwright/v1`
