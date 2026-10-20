@@ -13,6 +13,10 @@ the CLI. **k3d** (k3s in Docker) is the default when you need a *fresh* local cl
 remote) — and reuse it.** Only create a cluster or deploy the agent when none is running, and **confirm each mutating
 step with the user before running it** — these commands install binaries, create clusters, and deploy into them.
 
+**Every command in this skill is Bash.** On Windows, run the whole skill from Git Bash or WSL, not PowerShell or
+`cmd.exe` — the checks use `command -v` and `[ -n ... ]`, which PowerShell cannot run. Windows executables such as
+`choco`, `kubectl`, `helm`, and `k3d` work from Git Bash as long as they are on PATH.
+
 ## The Core Loop
 
 Run these in order. Reuse whatever already exists; confirm every mutating step with the user before running it.
@@ -26,16 +30,16 @@ Run these in order. Reuse whatever already exists; confirm every mutating step w
     if [ -n "$TK_CMD" ]; then echo "$TK_CMD"; else echo "Testkube CLI not found; use installing-testkube-cli"; fi
    command -v kubectl                                  # kubectl — talk to the cluster
    command -v helm                                     # helm — testkube init standalone-agent invokes Helm internally
-   command -v curl                                     # curl — k3d install script
    ```
 
    Only when you need a fresh local k3d cluster (steps 3–4):
    ```bash
    docker info >/dev/null 2>&1 && echo docker-ok       # Docker daemon must be running
+   command -v k3d                                      # k3d — installed in step 3 if missing
    ```
 
-   Required always: the **Testkube CLI**, **`kubectl`**, **`helm`**, and **`curl`**. **Docker** is required only when
-   creating a k3d cluster. `k3d` itself is installed in step 3 if it's missing and you need a fresh local cluster.
+   Required always: the **Testkube CLI**, **`kubectl`**, and **`helm`**. **Docker** and **`k3d`** are required only
+   when creating a k3d cluster; `k3d` is installed through a package manager in step 3 if it's missing.
 2. **Check for an existing Testkube agent — in the current cluster of ANY type — and reuse it.** The agent may
    already be running in minikube, kind, k3d, or a remote cluster; detection is cluster-agnostic. Before creating
    anything:
@@ -54,31 +58,59 @@ Run these in order. Reuse whatever already exists; confirm every mutating step w
    ```
    Steps 3–4 create a *fresh local* cluster with k3d — **skip both entirely if you already have a usable cluster**
    (minikube, kind, k3d, remote) and just deploy the agent into it (step 5).
-3. **Install k3d (if missing)** — confirm with the user, then:
+3. **Install k3d (if missing)** — confirm with the user, then install it through a package manager:
    ```bash
-   command -v bash
-   curl -fsSL https://raw.githubusercontent.com/k3d-io/k3d/v5.7.4/install.sh -o /tmp/k3d-install.sh
-   TAG=v5.7.4 bash /tmp/k3d-install.sh
+   brew install k3d                                    # macOS / Linux (Homebrew)
+   choco install k3d --version 5.7.4 -y                # Windows, from Git Bash (Chocolatey), pinned to an exact version
    ```
-   Skip if `command -v k3d` already resolves, or if you're reusing minikube/kind/another cluster (e.g. `brew install k3d`).
+   Chocolatey needs an elevated shell — if Git Bash isn't running as Administrator, ask the user to run the
+   `choco install` themselves.
+   Skip if `command -v k3d` already resolves, or if you're reusing minikube/kind/another cluster. When neither
+   package manager is available, **do not download k3d or its install script yourself** — ask the user to install it
+   (https://k3d.io/stable/#installation) or to point you at an existing cluster, then continue.
 4. **Create the cluster (if missing)** — confirm, then:
    ```bash
    k3d cluster create testkube
    ```
    Skip if you already have a running cluster to use — reuse it (e.g. `minikube start` / an existing `k3d cluster
    list` entry). k3d merges its context into your kubeconfig and switches to it.
-5. **Deploy the agent (if missing)** — confirm, then:
-   ```bash
-   TK_CMD="$(command -v testkube || command -v tk || command -v kubectl-testkube)"
-   if [ -n "$TK_CMD" ]; then "$TK_CMD" init standalone-agent --no-confirm; else echo "Testkube CLI not found; use installing-testkube-cli"; fi
-   ```
-   (`testkube init oss` is an alias.) Skip if the `testkube` namespace already has the agent Running. **Get the
-   user's approval before running this (Rule 2).** Note: `testkube init standalone-agent` prints
-   `Do you want to continue? [Y/n]` and reads the answer from the terminal (`/dev/tty`) — piping `yes` or any answer
-   to stdin does **not** reach it, so in a non-interactive / agent / CI shell the command hangs forever. Once the user
-   has approved out of band, run it non-interactively: prefer the **Helm alternative below** (inherently
-   non-interactive), or pass `--no-confirm` (the human approval Rule 2 requires has already happened — see Rule 6).
-   Only when a real human is at the terminal should you leave the prompt for them to answer.
+5. **Deploy the agent (if missing)** — `testkube init standalone-agent` installs the latest `kubeshop/testkube` chart
+   unless it is given a version, so always pin one with `--helm-arg version=<chart-version>`. This takes two
+   separate approvals:
+
+   a. **Add the Helm repository** — first check whether a `kubeshop` entry exists and where it points (read-only):
+      ```bash
+      helm repo list 2>/dev/null | awk '$1 == "kubeshop" { print $2 }'
+      ```
+      - **Prints `https://kubeshop.github.io/helm-charts`** — reuse it; skip to the update below.
+      - **Prints nothing** — add it.
+      - **Prints any other URL** — the entry points somewhere else, and both the version search and the deploy would
+        trust charts from there (`testkube init` also reuses an existing `kubeshop` entry without checking its URL).
+        Show the user the current URL, and only with their approval replace it with `--force-update`.
+
+      Adding or replacing the entry and updating the cache change Helm's repository configuration, so confirm with the
+      user first, then:
+      ```bash
+      helm repo add kubeshop https://kubeshop.github.io/helm-charts               # when missing
+      helm repo add kubeshop https://kubeshop.github.io/helm-charts --force-update  # when it points elsewhere
+      helm repo update kubeshop
+      ```
+   b. **Pick an exact chart version** (read-only):
+      ```bash
+      helm search repo kubeshop/testkube --versions | head
+      ```
+   c. **Deploy** — confirm the chart version with the user, then:
+      ```bash
+      TK_CMD="$(command -v testkube || command -v tk || command -v kubectl-testkube)"
+      if [ -n "$TK_CMD" ]; then "$TK_CMD" init standalone-agent --helm-arg version=<chart-version> --no-confirm; else echo "Testkube CLI not found; use installing-testkube-cli"; fi
+      ```
+      (`testkube init oss` is an alias.) Skip if the `testkube` namespace already has the agent Running. **Get the
+      user's approval before running this (Rule 2).** Note: `testkube init standalone-agent` prints
+      `Do you want to continue? [Y/n]` and reads the answer from the terminal (`/dev/tty`) — piping `yes` or any answer
+      to stdin does **not** reach it, so in a non-interactive / agent / CI shell the command hangs forever. Once the user
+      has approved out of band, run it non-interactively: prefer the **Helm alternative below** (inherently
+      non-interactive), or pass `--no-confirm` (the human approval Rule 2 requires has already happened — see Rule 6).
+      Only when a real human is at the terminal should you leave the prompt for them to answer.
 6. **Verify** — wait until the API server pods are `Running` (and MinIO if installed — it is by default), then confirm
    CLI ↔ server:
    ```bash
@@ -110,18 +142,23 @@ Run these in order. Reuse whatever already exists; confirm every mutating step w
    shell it hangs (piping `yes` does not help). Never skip the user's approval. Once they have approved, run
    non-interactively via the Helm alternative or with `--no-confirm` — the human approval is what matters, not who
    types `Y`. Leave the prompt for the user to answer only when a real human is interacting with the terminal.
-7. **REQUIRED SUB-SKILL:** the Testkube CLI must be present — use installing-testkube-cli. Also needs `kubectl`,
-   `helm`, and `curl` on PATH. Docker (`docker info`) is required only when creating a k3d cluster. `k3d` is installed
-   by step 3 when needed.
+7. **REQUIRED SUB-SKILL:** the Testkube CLI must be present — use installing-testkube-cli. Also needs `kubectl`
+   and `helm` on PATH. Docker (`docker info`) is required only when creating a k3d cluster. `k3d` is installed by
+   step 3 when needed.
+8. **MUST NOT download and run install scripts or release binaries.** Install missing tools only through a package
+   manager (pinned to an exact version where it supports one); otherwise ask the user to install them. Deploy the
+   agent from an exact chart version too — `--helm-arg version=<chart-version>` for `testkube init`, `--version` for
+   Helm.
 
 ## Helm alternative (Step 5)
 
-Equivalent to `testkube init standalone-agent`, useful for pinning chart values / CI:
+Equivalent to `testkube init standalone-agent`, useful for pinning chart values / CI. Follow the same approvals as
+step 5: add the repository (5a) and pick an exact chart version (5b) first, then confirm the version with the user
+and deploy:
 
 ```bash
-helm repo add kubeshop https://kubeshop.github.io/helm-charts
-helm repo update
 helm upgrade --install testkube kubeshop/testkube \
+  --version <chart-version> \
   --create-namespace \
   --namespace testkube \
   --set installCRDs=true
