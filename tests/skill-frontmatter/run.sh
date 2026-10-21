@@ -49,13 +49,23 @@ if not lines or lines[0] != "---" or "---" not in lines[1:]:
 front = lines[1:lines[1:].index("---") + 1]
 say(True, "frontmatter block")
 
+# A top-level scalar: plain, quoted, or a folded (>) or literal (|) block whose
+# indented lines follow it.
 def value(key):
-    for line in front:
-        if line.startswith(key + ":"):
-            v = line[len(key) + 1:].strip()
-            if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
-                v = v[1:-1]
-            return v
+    for i, line in enumerate(front):
+        if not line.startswith(key + ":"):
+            continue
+        v = line[len(key) + 1:].strip()
+        if v[:1] in (">", "|"):
+            body = []
+            for cont in front[i + 1:]:
+                if cont and not cont[0].isspace():
+                    break
+                body.append(cont.strip())
+            return (" " if v[0] == ">" else "\n").join(b for b in body if b)
+        if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
+            v = v[1:-1]
+        return v
     return None
 
 name = value("name")
