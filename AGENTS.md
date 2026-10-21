@@ -11,13 +11,15 @@ The seven sections below are: verifying a change, reproducing a bug, the reposit
 Users install these skills into their own agents, so a skill change ships to customers. Treat a `SKILL.md` like product code.
 
 ```bash
+bash tests/skill-frontmatter/run.sh            # after editing any skill: name, description, agents/openai.yaml
 bash tests/docs-index/run.sh                   # after editing the docs index in the testkube skill
 tests/testworkflow-author-json-mode/run.sh     # after editing testworkflow-author or test-discovery
 ```
 
 - `docs-index` checks every `docs.testkube.io` URL the `testkube` skill cites. It needs network access. It fails on a 404 and on a redirect stub, and only warns when a page is missing from the sitemap. In CI it took 12 to 24 seconds over the 13 runs between August and October 2026 (GitHub API, run start to last update).
 - The JSON-mode tests need `bash` and `python3`; they use `jsonschema` and the `testkube` CLI when present. They need no network and no secrets. They are not in CI, so run them yourself. The `testkube --dry-run` step is advisory: it needs a reachable Testkube context, and a failure there is not a YAML defect.
-- Nothing checks the other skills automatically. Read the changed `SKILL.md` as the agent will see it, and try the skill in an agent on a task its `description` claims (section 7).
+- `skill-frontmatter` checks every skill's `name` against its directory and the Agent Skills rules, keeps `description` within the 1024-character limit, and checks that `agents/openai.yaml` invokes the skill by name. It needs only `bash` and `python3`, and runs in CI. The `testkube` skill's description is already near the limit.
+- Beyond the frontmatter, nothing checks a skill's instructions. Read the changed `SKILL.md` as the agent will see it, and try the skill in an agent on a task its `description` claims (section 7).
 
 ## 2. Reproducing a bug
 
@@ -39,8 +41,8 @@ Nothing in this repository is generated; every file is edited by hand.
 - Plugin manifests:
   - Per plugin: `plugins/testkube-skills/.claude-plugin/plugin.json`, `.codex-plugin/plugin.json` and `.cursor-plugin/plugin.json`. The Codex one also carries the `interface` block and the icons in `plugins/testkube-skills/assets/`.
   - Marketplaces at the repository root: `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json` (Codex) and `.cursor-plugin/marketplace.json`.
-- `tests/docs-index/run.sh` checks the docs index; `tests/testworkflow-author-json-mode/` holds the JSON-mode contract tests and their fixtures.
-- `.github/workflows/docs-index.yml` is the only workflow (section 6).
+- `tests/skill-frontmatter/run.sh` checks every skill's frontmatter; `tests/docs-index/run.sh` checks the docs index; `tests/testworkflow-author-json-mode/` holds the JSON-mode contract tests and their fixtures.
+- `.github/workflows/skill-frontmatter.yml` and `.github/workflows/docs-index.yml` are the two workflows (section 6).
 - `README.md` is the user-facing description of every skill. `CLAUDE.md` points at this file.
 
 ### Other places that carry these skills
@@ -76,7 +78,11 @@ Titles use [Conventional Commits](https://www.conventionalcommits.org/): `feat:`
 
 ## 6. Pull request checks and the MCP tools
 
-There are no Testkube quality-loop workflows for this repository, so no Testkube MCP steps apply. The only GitHub Action is `.github/workflows/docs-index.yml`:
+There are no Testkube quality-loop workflows for this repository, so no Testkube MCP steps apply. There are two GitHub Actions.
+
+`.github/workflows/skill-frontmatter.yml` runs `bash tests/skill-frontmatter/run.sh` on pull requests and pushes to `main` that touch any skill, the check or the workflow, and by hand (`workflow_dispatch`).
+
+`.github/workflows/docs-index.yml`:
 
 - It runs `bash tests/docs-index/run.sh` on pull requests and pushes to `main` that touch `plugins/testkube-skills/skills/testkube/SKILL.md`, `tests/docs-index/` or the workflow itself, every Monday at 06:00 UTC, and by hand (`workflow_dispatch`).
 - A failed Monday run opens an issue, or comments on the open one, instead of failing into a log nobody reads.
