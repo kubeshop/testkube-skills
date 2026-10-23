@@ -8,18 +8,27 @@ Owner: `@kubeshop/testkube-backend`, the team that owns testkube-cloud-api. This
 
 Users install these skills into their own agents, so a skill change ships to customers. Treat a `SKILL.md` like product code.
 
-```bash
-bash tests/skill-frontmatter/run.sh            # after editing any skill: name, description, agents/openai.yaml
-bash tests/docs-index/run.sh                   # after editing the docs index in the testkube skill
-tests/testworkflow-author-json-mode/run.sh     # after editing testworkflow-author or test-discovery
-```
+**Everywhere** (a developer host or a sandbox; each needs `bash` and `python3`):
 
-- `docs-index` checks every `docs.testkube.io` URL the `testkube` skill cites. It needs network access. It fails on a 404 and on a redirect stub, and only warns when a page is missing from the sitemap. In CI it took 12 to 24 seconds over the 13 runs between August and October 2026 (GitHub API, run start to last update).
-- The JSON-mode tests need `bash` and `python3`; they use `jsonschema` and the `testkube` CLI when present. They need no network and no secrets. They are not in CI, so run them yourself. The `testkube --dry-run` step is advisory: it needs a reachable Testkube context, and a failure there is not a YAML defect.
-- `skill-frontmatter` checks every skill's `name` against its directory and the Agent Skills rules, keeps `description` within the 1024-character limit, and checks that `agents/openai.yaml` invokes the skill by name. It needs only `bash` and `python3`, and runs in CI. The `testkube` skill's description is already near the limit.
+| Command | Run it | Passes when |
+| --- | --- | --- |
+| `bash tests/skill-frontmatter/run.sh` | after editing any skill | the last line is `0 failed` |
+| `bash tests/docs-index/run.sh` | after editing the docs index in the `testkube` skill; needs network | `== summary: <n> passed, 0 failed, <k> warnings ==` |
+| `tests/testworkflow-author-json-mode/run.sh` | after editing `testworkflow-author` or `test-discovery` | `== summary: <n> passed, 0 failed ==` |
+
+- `skill-frontmatter` checks every skill's `name` against its directory and the Agent Skills rules, keeps `description` within the 1024-character limit, and checks that `agents/openai.yaml` invokes the skill by name. It runs in CI. The `testkube` skill's description is already near the limit.
+- `docs-index` checks every `docs.testkube.io` URL the `testkube` skill cites. It fails on a 404 and on a redirect stub, and only warns (`WARN`) when a page is missing from the sitemap.
+- The JSON-mode tests use `jsonschema` and the `testkube` CLI when present, and need no network and no secrets. They are not in CI, so run them yourself. The `testkube --dry-run` step is advisory (`ADVISORY` or `SKIP` lines): it needs a reachable Testkube context, and a failure there is not a YAML defect.
 - Beyond the frontmatter, nothing checks a skill's instructions. Read the changed `SKILL.md` as the agent will see it, and try the skill in an agent on a task its `description` claims (section 7).
 
-## 2. Reproducing a bug
+## 2. Never do these
+
+- **Do not write a skill that installs anything or changes a cluster without asking first, or that invents credentials.** A skill runs inside someone else's agent, on their machine. Keep to the pattern the setup skills follow: find what exists and reuse it, then confirm each step before acting.
+- **Do not change the version in one manifest only.** The three `plugin.json` files and the Claude and Cursor marketplaces move together.
+- **Do not fix a shared file in the runspace copy in `testkube-cloud-api`.** Change it here; the copy there follows the pinned commit, and its `cloud-skills-drift` check fails when the two differ.
+- **Do not add a docs URL that redirects.** `docs-index` fails on it, and a failed Monday run opens an issue.
+
+## 3. Reproducing a bug
 
 A skill bug is an agent doing the wrong thing with the skill loaded.
 
@@ -28,7 +37,7 @@ A skill bug is an agent doing the wrong thing with the skill loaded.
 - **A broken docs link in the `testkube` skill:** `bash tests/docs-index/run.sh` names the URL, and for a redirect stub it prints the target to replace it with.
 - **`test-discovery` output:** `plugins/testkube-skills/skills/test-discovery/examples/` holds sample manifests (an empty repository, a single Playwright suite, a polyglot monorepo, an ambiguous `needs_input` case). Compare a bad manifest with them and with `assets/manifest-schema.json`.
 
-## 3. Repository map
+## 4. Repository map
 
 Nothing in this repository is generated; every file is edited by hand.
 
@@ -48,7 +57,7 @@ Nothing in this repository is generated; every file is edited by hand.
 - `kubeshop/testkube-cloud-api` carries `testworkflow-author`, `testworkflow-runner` and `test-discovery` in `js/packages/runspace-controller/skills/`, adapted to the runspace's tools (editing a workflow through `edit_workflow` instead of writing YAML). The files they share with this repository, mostly the schemas, examples and references, are listed in its `shared-skills.txt` with a pinned commit of this repository, and its `cloud-skills-drift` check fails when a copy differs. A change here reaches the runspace only when someone moves that pin and syncs the copies there; the adapted `SKILL.md` files are not copies and stay separate.
 - `kubeshop/testkube-docs` links to the docs index: its `AGENTS.md` asks for a fix here when a docs slug is renamed.
 
-## 4. Conventions reviewers enforce
+## 5. Conventions reviewers enforce
 
 ### Frontmatter and metadata
 
@@ -67,13 +76,6 @@ Nothing in this repository is generated; every file is edited by hand.
 
 Titles use [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `chore:` and so on, for example `fix: verify the Helm repository URL before reusing it`. No check enforces it.
 
-## 5. Never do these
-
-- **Do not write a skill that installs anything or changes a cluster without asking first, or that invents credentials.** A skill runs inside someone else's agent, on their machine. Keep to the pattern the setup skills follow: find what exists and reuse it, then confirm each step before acting.
-- **Do not change the version in one manifest only.** The three `plugin.json` files and the Claude and Cursor marketplaces move together.
-- **Do not fix a shared file in the runspace copy in `testkube-cloud-api`.** Change it here; the copy there follows the pinned commit, and its `cloud-skills-drift` check fails when the two differ.
-- **Do not add a docs URL that redirects.** `docs-index` fails on it, and a failed Monday run opens an issue.
-
 ## 6. Pull request checks and the MCP tools
 
 There are no Testkube quality-loop workflows for this repository, so no Testkube MCP steps apply. There are two GitHub Actions.
@@ -82,13 +84,14 @@ There are no Testkube quality-loop workflows for this repository, so no Testkube
 
 `.github/workflows/docs-index.yml`:
 
-- It runs `bash tests/docs-index/run.sh` on pull requests and pushes to `main` that touch `plugins/testkube-skills/skills/testkube/SKILL.md`, `tests/docs-index/` or the workflow itself, every Monday at 06:00 UTC, and by hand (`workflow_dispatch`).
+- It runs `bash tests/docs-index/run.sh` on pull requests and pushes to `main` that touch `plugins/testkube-skills/skills/testkube/SKILL.md`, `tests/docs-index/` or the workflow itself, weekly on Mondays, and by hand (`workflow_dispatch`).
 - A failed Monday run opens an issue, or comments on the open one, instead of failing into a log nobody reads.
-- It took 12 to 24 seconds per run (section 1).
 
-GitHub Copilot code review also runs on pull requests. It is not a file in `.github/workflows`; its seven runs on 8 October 2026 took 105 to 185 seconds each (GitHub API, run start to last update).
+GitHub Copilot code review also runs on pull requests. It is not a file in `.github/workflows`.
 
 ## 7. Skills and starting a component
+
+The short path to trying a change: copy the skill folder from `plugins/testkube-skills/skills/<name>` into your agent's skills folder and invoke it with a request its `description` claims ("Trying a skill locally" below has each agent's folder). There is no service to start.
 
 ### The skills
 
@@ -105,7 +108,7 @@ GitHub Copilot code review also runs on pull requests. It is not a file in `.git
 
 ### Trying a skill locally
 
-There is no service to start. Load the skills into an agent, as `README.md` describes:
+Load the skills into an agent, as `README.md` describes:
 
 - **Claude Code:** `cp -r plugins/testkube-skills/skills/<name> ~/.claude/skills/`, then `/<name> <request>`. The published plugin installs with `/plugin marketplace add kubeshop/testkube-skills` and `/plugin install testkube-skills@testkube-skills`, and its skills are `/testkube-skills:<name>`; that installs what is published, not your branch.
 - **VS Code / GitHub Copilot:** copy the folder into `.github/skills/`.
