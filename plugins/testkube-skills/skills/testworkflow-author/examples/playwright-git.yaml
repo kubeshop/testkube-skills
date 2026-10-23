@@ -35,7 +35,12 @@ spec:
   - name: Install dependencies
     shell: npm ci
 
-  # Step 2: Run tests with reporting enabled
+  # Step 2: Run tests with reporting enabled.
+  # This repository already sets `reporter: 'html'`; these flags replace that whole list
+  # to add JUnit so Testkube can parse results. Only override an imported project's
+  # reporting when the user agreed to it.
+  # Testkube sets CI=1 in every execution container, so Playwright's HTML reporter
+  # never opens the report here regardless of the reporter's own open setting.
   - name: Run Playwright tests
     run:
       # run.shell gives more control — explicit command with env vars
