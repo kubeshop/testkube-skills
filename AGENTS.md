@@ -4,8 +4,6 @@ The public source of the Testkube agent skills, in the [Agent Skills](https://ag
 
 Owner: `@kubeshop/testkube-backend`, the team that owns testkube-cloud-api. This repository has no CODEOWNERS file, so nothing assigns reviewers automatically.
 
-The seven sections below are: verifying a change, reproducing a bug, the repository map, the conventions reviewers enforce, what never to do, the pull request checks, and the skills and how to try them.
-
 ## 1. Verifying a change
 
 Users install these skills into their own agents, so a skill change ships to customers. Treat a `SKILL.md` like product code.
