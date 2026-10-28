@@ -1,0 +1,31 @@
+name: skill-frontmatter
+
+# Every skill's frontmatter is what agents match requests against: a name that
+# no longer matches its directory, or a description past the 1024-character
+# Agent Skills limit, makes the skill unreachable without any other error.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'plugins/testkube-skills/skills/**'
+      - 'tests/skill-frontmatter/**'
+      - '.github/workflows/skill-frontmatter.yml'
+  pull_request:
+    paths:
+      - 'plugins/testkube-skills/skills/**'
+      - 'tests/skill-frontmatter/**'
+      - '.github/workflows/skill-frontmatter.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check every skill's frontmatter
+        run: bash tests/skill-frontmatter/run.sh
