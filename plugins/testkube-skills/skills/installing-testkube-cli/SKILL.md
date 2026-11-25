@@ -86,7 +86,7 @@ The installed client binary has no runtime dependencies; the install method need
 | Method | Requires on PATH |
 |--------|------------------|
 | macOS / Linux (Homebrew) | `brew` |
-| Ubuntu / Debian (APT) | `sudo`, `apt-get`, `gnupg`, `wget` |
+| Ubuntu / Debian (APT) | `sudo`, `apt-get`, `wget` |
 | Windows (Chocolatey) | `choco` |
 
 **Linux/macOS (bash/zsh):**
@@ -129,12 +129,15 @@ version that differs from what `brew info testkube` offers, use APT or Chocolate
 Add the Testkube repository once:
 
 ```bash
-sudo apt-get update && sudo apt-get install -y gnupg wget
+sudo apt-get update && sudo apt-get install -y wget
 sudo install -m 0755 -d /etc/apt/keyrings
-wget -qO- https://repo.testkube.io/key.pub | sudo gpg --dearmor -o /etc/apt/keyrings/testkube.gpg
-echo "deb [signed-by=/etc/apt/keyrings/testkube.gpg] https://repo.testkube.io/linux linux main" | sudo tee /etc/apt/sources.list.d/testkube.list
+sudo wget -q -O /etc/apt/keyrings/testkube.asc https://repo.testkube.io/key.pub
+echo "deb [signed-by=/etc/apt/keyrings/testkube.asc] https://repo.testkube.io/linux linux main" | sudo tee /etc/apt/sources.list.d/testkube.list
 sudo apt-get update
 ```
+
+The signing key is saved as a file and only read by APT (`signed-by`); it is never passed to another command. APT reads
+an ASCII-armored key directly when the file ends in `.asc`.
 
 Then list the available versions and install an exact one:
 

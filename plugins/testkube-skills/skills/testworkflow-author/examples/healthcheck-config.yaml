@@ -57,9 +57,14 @@ spec:
     optional: true
     shell: echo "Telemetry disabled"
 
-  # $API_TOKEN is expanded directly by the shell — the secret
-  # value is injected as an env var via valueFrom.secretKeyRef above.
+  # The secret value is injected into the step's container as the
+  # API_TOKEN env var via valueFrom.secretKeyRef above. This step only
+  # checks that it arrived; pass it on to your own tool the way that
+  # tool expects.
+  - name: Check the secret is injected
+    shell: |
+      test -n "$API_TOKEN" || { echo "API_TOKEN is not set"; exit 1; }
+
   - name: Health check
     shell: |
-      curl -f -H "Authorization: Bearer $API_TOKEN" \
-        {{ config.endpoint }}
+      curl -f {{ config.endpoint }}
